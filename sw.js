@@ -1,11 +1,11 @@
-const CACHE_NAME = 'h3alb-v13';
+const CACHE_NAME = 'h3alb-v15';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './menu.js',
   './firebase-config.js',
-  './logo.png',
+  './logo1.png',
   './texture.png',
   'https://fonts.googleapis.com/css2?family=Changa:wght@700;800&family=Readex+Pro:wght@300..700&family=Cairo:wght@400;600;700;800&display=swap',
   'https://cdn.jsdelivr.net/npm/@fontsource/cascadia-mono@5.0.18/index.css'
