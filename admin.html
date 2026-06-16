@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>إدارة أبو حالوب — Admin Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Changa:wght@700;800&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <style>
+        :root {
+            --red: #2b2b2b;
+            --red-light: #f0ebe5;
+            --bg: #fdfaf7;
+            --white: #ffffff;
+            --ink: #111111;
+            --sub: #4e4e4e;
+            --border: #ece1d5;
+            --accent: #7a6657;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg);
+            font-family: 'Cairo', sans-serif;
+            color: var(--ink);
+            min-height: 100vh;
+            padding-bottom: 50px;
+        }
+
+        /* ── LOGIN ── */
+        #loginOverlay {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            background: var(--white);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card i { font-size: 48px; color: var(--red); margin-bottom: 20px; }
+        .login-card h1 { font-family: 'Changa', sans-serif; font-size: 24px; margin-bottom: 10px; }
+        .login-card input {
+            width: 100%;
+            padding: 15px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            margin-bottom: 20px;
+            font-family: inherit;
+            font-size: 16px;
+            outline: none;
+            text-align: center;
+        }
+        .login-card button {
+            width: 100%;
+            padding: 15px;
+            background: var(--red);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .login-card button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(90, 177, 184, 0.2); }
+
+        /* ── HEADER ── */
+        .hdr {
+            background: var(--white);
+            padding: 15px 5%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+        .logo { font-family: 'Changa', sans-serif; font-size: 24px; color: var(--red); font-weight: 800; display: flex; align-items: center; gap: 10px; }
+        .conn-status { font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+        .dot.online { background: #22c55e; box-shadow: 0 0 10px #22c55e; }
+
+        /* ── MAIN CONTENT ── */
+        .container { max-width: 1200px; margin: 40px auto; padding: 0 20px; }
+        .hero { margin-bottom: 40px; }
+        .hero h1 { font-family: 'Changa', sans-serif; font-size: 32px; margin-bottom: 10px; }
+        .hero p { color: var(--sub); }
+
+        .toolbar {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: var(--white);
+            padding: 15px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 80px;
+            z-index: 900;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border-radius: 12px;
+            border: none;
+            font-family: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: 0.2s;
+        }
+        .btn-primary { background: var(--red); color: white; }
+        .btn-primary:hover { background: #111111; transform: translateY(-2px); }
+        .btn-sync { background: var(--red-light); color: var(--red); }
+
+        /* ── LISTING ── */
+        .cat-group { margin-bottom: 40px; }
+        .cat-h { 
+            font-family: 'Changa', sans-serif; 
+            font-size: 22px; 
+            margin-bottom: 20px; 
+            padding-bottom: 10px; 
+            border-bottom: 3px solid var(--red);
+            display: inline-block;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .item-card {
+            background: var(--white);
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: 0.3s;
+        }
+        .item-card:hover { border-color: var(--red); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+
+        .item-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            object-fit: cover;
+            background: #f0f0f0;
+        }
+
+        .item-details { flex: 1; }
+        .item-name { font-weight: 800; font-size: 18px; margin-bottom: 4px; }
+        .item-price { color: var(--red); font-weight: 800; font-size: 16px; }
+
+        .item-actions { display: flex; flex-direction: column; gap: 8px; }
+        .act-btn {
+            width: 35px;
+            height: 35px;
+            border-radius: 10px;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            transition: 0.2s;
+        }
+        .btn-edit { background: #eff6ff; color: #2563eb; }
+        .btn-del { background: #fef2f2; color: #dc2626; }
+
+        /* ── MODAL ── */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal {
+            background: var(--white);
+            width: 100%;
+            max-width: 550px;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+        }
+        .modal-hdr {
+            padding: 25px;
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-hdr h2 { font-family: 'Changa', sans-serif; font-size: 20px; }
+        .modal-body { padding: 30px; }
+        .field { margin-bottom: 15px; }
+        .field label { display: block; font-weight: 700; margin-bottom: 8px; font-size: 14px; color: var(--sub); }
+        .field input, .field select, .field textarea {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            font-family: inherit;
+            font-weight: 600;
+            outline: none;
+            transition: 0.2s;
+        }
+        .field input:focus { border-color: var(--red); }
+
+        .preview-box {
+            margin-top: 15px;
+            height: 120px;
+            background: #f5f5f5;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+        .preview-box img { height: 100%; width: 100%; object-fit: cover; }
+
+        .modal-footer { padding: 25px; display: flex; gap: 12px; background: #fafafa; }
+
+        /* ── TOAST ── */
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: #1a1a1a;
+            color: white;
+            padding: 12px 25px;
+            border-radius: 50px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 5000;
+            transition: 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        #toast.show { transform: translateX(-50%) translateY(0); }
+
+        /* ── RESPONSIVE STYLES ── */
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 30px;
+            }
+            
+            /* Login Overlay */
+            .login-card {
+                padding: 30px 20px;
+                border-radius: 24px;
+            }
+            .login-card h1 {
+                font-size: 20px;
+            }
+            .login-card input {
+                padding: 12px;
+                font-size: 15px;
+            }
+            
+            /* Header */
+            .hdr {
+                flex-direction: column;
+                gap: 15px;
+                padding: 15px;
+                text-align: center;
+                position: relative;
+            }
+            .hdr > div {
+                flex-wrap: wrap;
+                justify-content: center;
+                gap: 10px !important;
+                width: 100%;
+            }
+            .hdr .btn {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            .conn-status {
+                font-size: 12px;
+            }
+
+            /* Container */
+            .container {
+                margin: 20px auto;
+                padding: 0 15px;
+            }
+            .hero {
+                text-align: center;
+                margin-bottom: 25px;
+            }
+            .hero h1 {
+                font-size: 24px;
+            }
+            .hero p {
+                font-size: 14px;
+            }
+
+            /* Toolbar */
+            .toolbar {
+                flex-direction: column;
+                position: static;
+                gap: 10px;
+                padding: 12px;
+                border-radius: 15px;
+            }
+            .toolbar .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 10px;
+                font-size: 14px;
+            }
+            .toolbar > div {
+                display: none;
+            }
+
+            /* Main Grid & Cards */
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            .item-card {
+                padding: 15px;
+                border-radius: 20px;
+                gap: 15px;
+            }
+            .item-name {
+                font-size: 16px;
+            }
+            .item-price {
+                font-size: 15px;
+            }
+            .act-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+
+            /* Modals */
+            .modal-overlay {
+                padding: 10px;
+            }
+            .modal {
+                max-width: 100%;
+                border-radius: 20px;
+            }
+            .modal-hdr {
+                padding: 15px 20px;
+            }
+            .modal-hdr h2 {
+                font-size: 18px;
+            }
+            .modal-body {
+                padding: 20px;
+            }
+            .field label {
+                font-size: 13px;
+                margin-bottom: 6px;
+            }
+            .field input, .field select, .field textarea {
+                padding: 12px;
+                font-size: 15px;
+            }
+            .modal-footer {
+                padding: 15px 20px;
+                flex-direction: column;
+                gap: 10px;
+            }
+            .modal-footer .btn {
+                width: 100%;
+                justify-content: center;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SECURE LOGIN -->
+    <div id="loginOverlay">
+        <div class="login-card">
+            <i class="ph-bold ph-lock-key"></i>
+            <h1>لوحة دخول المحترفين</h1>
+            <p style="color:var(--sub); margin-bottom:20px; font-size:14px;">يرجى إدخال كلمة المرور للمتابعة</p>
+            <input type="password" id="adminPass" placeholder="كلمة المرور">
+            <button onclick="checkPass()">دخول</button>
+            <p id="error" style="color:#dc2626; margin-top:15px; font-size:14px; display:none; font-weight:700;"></p>
+        </div>
+    </div>
+
+    <header class="hdr">
+        <div class="logo">
+            <i class="ph-bold ph-chef-hat"></i> أبو حالوب — الإدارة
+        </div>
+        <div style="display:flex; gap:20px; align-items:center;">
+            <button class="btn btn-sync" style="background:#f0fdf4; color:#16a34a; padding:8px 15px;" onclick="openCatModal()">
+                <i class="ph-bold ph-list-plus"></i> إدارة الأقسام
+            </button>
+            <button class="btn btn-sync" style="background:#f0f9ff; color:#0369a1; padding:8px 15px;" onclick="testFirebase()">
+                <i class="ph-bold ph-plugs-connected"></i> فحص الاتصال
+            </button>
+            <div class="conn-status">
+                <div id="statusDot" class="dot"></div>
+                <span id="statusTxt">جاري الاتصال...</span>
+            </div>
+            <button class="btn btn-sync" onclick="logout()" style="padding:8px; background:none; border:none; color:var(--red);">
+                خروج <i class="ph-bold ph-sign-out"></i>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h1>أهلاً بك يا مدير! 👋</h1>
+            <p>من هنا يمكنك التحكم في قائمة الطعام، الأسعار، والأقسام بشكل فوري.</p>
+        </div>
+
+        <div class="toolbar">
+            <button class="btn btn-primary" onclick="openModal('add')">
+                <i class="ph-bold ph-plus-circle"></i> إضافة وجبة جديدة
+            </button>
+            <div style="flex:1"></div>
+            <button class="btn btn-sync" onclick="syncWithFirebase()" style="opacity: 0.6; font-size: 12px; padding: 8px 15px;">
+                <i class="ph-bold ph-warning-circle"></i> إعادة ضبط المصنع (حذف كل شيء)
+            </button>
+        </div>
+
+        <div id="mainListing">
+            <!-- Data will be loaded here -->
+            <div style="text-align:center; padding:100px; color:var(--sub);">
+                <i class="ph-bold ph-spinner ph-spin" style="font-size:40px;"></i>
+                <p style="margin-top:20px;">جاري تحميل البيانات من السحابة...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h2 id="modalTitle">إضافة وجبة جديدة</h2>
+                <i class="ph-bold ph-x" style="cursor:pointer" onclick="closeModal()"></i>
+            </div>
+            <form id="mealForm">
+                <div class="modal-body">
+                    <input type="hidden" id="mealId">
+                    <div class="field">
+                        <label>القسم</label>
+                        <select id="mealCat" required>
+                            <option value="">اختر القسم...</option>
+                            <option value="masgouf">سمك مسكوف</option>
+                            <option value="chicken">دجاج على الفحم</option>
+                            <option value="grills">المشويات</option>
+                            <option value="burgers">البركر</option>
+                            <option value="sandwiches">ساندويش</option>
+                            <option value="cold_starters">المقبلات الباردة</option>
+                            <option value="hot_starters">المقبلات الحارة</option>
+                            <option value="soft_drinks">مشروبات غازية</option>
+                            <option value="energy_drinks">طاقة</option>
+                            <option value="fruits_cakes">فواكة كيك كنافة</option>
+                            <option value="mojito">موهيتو</option>
+                            <option value="pancakes">بان كيك</option>
+                            <option value="smoothies">سموذي</option>
+                            <option value="hot_drinks">المشروبات الساخنة</option>
+                            <option value="milkshake">ميلك شيك</option>
+                            <option value="sweets">الحلويات</option>
+                            <option value="ice_coffee">ايس كوفي</option>
+                            <option value="ice_cream">ايس كريم</option>
+                            <option value="juices">العصائر</option>
+                            <option value="waffles">وافل</option>
+                            <option value="hookah">الأراكيل</option>
+                        </select>
+                    </div>
+                    <div class="field">
+                        <label>اسم الوجبة</label>
+                        <input type="text" id="mealName" required placeholder="مثلاً: شاورما لحم دبل">
+                    </div>
+                    <div class="field">
+                        <label>سعر الوجبة (د.ع)</label>
+                        <input type="number" id="mealPrice" required placeholder="مثلاً: 5000">
+                    </div>
+                    <div class="field">
+                        <label>وصف الوجبة (اختياري)</label>
+                        <textarea id="mealDesc" rows="3" placeholder="مثلاً: بصل، طماطة، طحينية..."></textarea>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" style="flex:1">حفظ البيانات</button>
+                    <button type="button" class="btn btn-sync" style="background:#eee; color:#333;" onclick="closeModal()">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CATEGORY MODAL -->
+    <div class="modal-overlay" id="catModalOverlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h2>إدارة الأقسام (المنيو)</h2>
+                <i class="ph-bold ph-x" style="cursor:pointer" onclick="closeCatModal()"></i>
+            </div>
+            <div class="modal-body" style="max-height: 400px; overflow-y: auto;">
+                <div id="catListContainer">
+                    <!-- Categories will be listed here -->
+                </div>
+                <hr style="margin: 20px 0; border: none; border-top: 1px solid var(--border);">
+                <div class="field">
+                    <label>إضافة قسم جديد</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="text" id="newCatName" placeholder="مثلاً: حلويات، مقبلات...">
+                        <button class="btn btn-primary" onclick="addCategory()" style="padding:10px;">إضافة</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sync" style="background:#eee; color:#333; flex:1;" onclick="closeCatModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="firebase-config.js"></script>
+    <script>
+        /* ── SHA-256 Password Security ──
+           The actual password is NEVER stored here.
+           Only its SHA-256 hash is stored.
+           Hash of "NashmiAdmin2026" ↓↓ */
+        const PASS_HASH = 'ba2a566c17a8179c14f17ebdb8e58d8f15657f27ca2e65776464df3abb3043eb';
+
+        async function sha256(str) {
+            const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+        }
+
+        async function checkPass() {
+            const now      = Date.now();
+            let attempts   = JSON.parse(localStorage.getItem('h3albLoginAttempts') || '{"count":0,"time":0}');
+
+            // Reset counter after 1 hour
+            if (now - attempts.time > 3600000) attempts = { count: 0, time: 0 };
+
+            if (attempts.count >= 3) {
+                const remaining = Math.ceil((3600000 - (now - attempts.time)) / 60000);
+                showErr(`لقد استنفدت المحاولات! حاول بعد ${remaining} دقيقة.`);
+                return;
+            }
+
+            const input = document.getElementById('adminPass').value;
+            const hash  = await sha256(input);
+
+            if (hash === PASS_HASH) {
+                localStorage.removeItem('h3albLoginAttempts');
+                document.getElementById('loginOverlay').style.display = 'none';
+                sessionStorage.setItem('adminAuth', 'true');
+                init();
+            } else {
+                attempts.count++;
+                attempts.time = now;
+                localStorage.setItem('h3albLoginAttempts', JSON.stringify(attempts));
+                showErr(`كلمة المرور خاطئة! تبقى لك ${3 - attempts.count} محاولة/محاولات.`);
+            }
+        }
+
+        function showErr(msg) {
+            const err = document.getElementById('error');
+            err.innerText = msg;
+            err.style.display = 'block';
+        }
+
+        // Allow Enter key on password field
+        document.getElementById('adminPass').addEventListener('keydown', e => {
+            if (e.key === 'Enter') checkPass();
+        });
+
+        if(sessionStorage.getItem('adminAuth') === 'true') {
+            document.getElementById('loginOverlay').style.display = 'none';
+        }
+
+        function logout() {
+            sessionStorage.removeItem('adminAuth');
+            location.reload();
+        }
+
+        function testFirebase() {
+            if(!db) {
+                alert("برجاء الانتظار حتى يتم تحميل ملف الاعدادات");
+                return;
+            }
+            const testRef = firebase.database().ref('h3alb_menu/connection_test');
+            const testData = { timestamp: Date.now(), status: "working" };
+            
+            alert("بدء فحص الاتصال... يرجى الانتظار ثواني.");
+            
+            testRef.set(testData).then(() => {
+                testRef.once('value').then(snap => {
+                    const val = snap.val();
+                    if(val && val.status === "working") {
+                        alert("✅ الاتصال ناجح 100%! تم فحص القراءة والكتابة في الفاير بيس.");
+                    } else {
+                        alert("❌ فشل الاتصال! تم الكتابة ولكن لم تنجح القراءة.");
+                    }
+                });
+            }).catch(err => {
+                alert("❌ فشل الاتصال! تأكد من إعدادات Rules في Firebase واجعلها true.\nالخطأ: " + err.message);
+            });
+        }
+
+        let CATS = [];
+
+        function addCategory() {
+            const name = document.getElementById('newCatName').value.trim();
+            if(!name) return;
+            
+            // Suggest ID based on name (simple slug)
+            const id = 'cat_' + Date.now();
+            
+            db.child('categories').child(id).set({ id, name }).then(() => {
+                document.getElementById('newCatName').value = '';
+            });
+        }
+
+        function deleteCategory(id) {
+            if(confirm('هل أنت متأكد من حذف هذا القسم؟ ملاحظة: الوجبات التابعة له ستبقى ولكن لن تظهر في الموقع حتى تختار لها قسم آخر.')) {
+                db.child('categories').child(id).remove();
+            }
+        }
+
+        function openCatModal() {
+            document.getElementById('catModalOverlay').style.display = 'flex';
+            renderCatList();
+        }
+
+        function closeCatModal() {
+            document.getElementById('catModalOverlay').style.display = 'none';
+        }
+
+        function renderCatList() {
+            const container = document.getElementById('catListContainer');
+            if(CATS.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999;">لا توجد أقسام مضافة بعد</p>';
+                return;
+            }
+            container.innerHTML = CATS.map(c => `
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid #f5f5f5;">
+                    <span style="font-weight:700;">${c.name}</span>
+                    <button class="act-btn btn-del" onclick="deleteCategory('${c.id}')"><i class="ph-bold ph-trash"></i></button>
+                </div>
+            `).join('');
+        }
+
+        function updateCatDropdown() {
+            const select = document.getElementById('mealCat');
+            const currentVal = select.value;
+            select.innerHTML = '<option value="">اختر القسم...</option>' + 
+                CATS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+            select.value = currentVal;
+        }
+
+        let db;
+        function init() {
+            if(typeof firebase === 'undefined') {
+                document.getElementById('statusTxt').innerText = "خطأ في الاتصال!";
+                return;
+            }
+            db = firebase.database().ref('h3alb_menu');
+            
+            // Listen to Categories
+            db.child('categories').on('value', snap => {
+                const data = snap.val();
+                if(data) {
+                    CATS = Object.values(data);
+                } else {
+                    CATS = [];
+                }
+                updateCatDropdown();
+                if(document.getElementById('catModalOverlay').style.display === 'flex') {
+                    renderCatList();
+                }
+                // Refresh dashboard if we already have items data
+                db.child('items').once('value', s => {
+                    if(s.val()) renderDashboard({ items: s.val() });
+                });
+            });
+
+            // Listen to data
+            db.on('value', snap => {
+                const data = snap.val();
+                document.getElementById('statusDot').className = 'dot online';
+                document.getElementById('statusTxt').innerText = "متصل مباشر بالسحابة";
+                
+                if(!data || !data.items) {
+                    showEmptyState();
+                } else {
+                    renderDashboard(data);
+                }
+            }, err => {
+                console.error(err);
+                document.getElementById('statusTxt').innerText = "خطأ في الصلاحيات!";
+            });
+        }
+
+        function showEmptyState() {
+            document.getElementById('mainListing').innerHTML = `
+                <div style="text-align:center; padding:60px; border:2px dashed var(--border); border-radius:30px;">
+                    <i class="ph-bold ph-database" style="font-size:50px; color:#ccc;"></i>
+                    <h3 style="margin-top:20px;">قاعدة البيانات فارغة حالياً</h3>
+                    <p style="color:var(--sub); margin:10px 0 20px;">هل تريد رفع الوجبات الأصلية للمرة الأولى؟</p>
+                    <button class="btn btn-primary" style="margin:0 auto;" onclick="syncWithFirebase()">نعم، ارفع البيانات الأصلية</button>
+                </div>
+            `;
+        }
+
+        function renderDashboard(data) {
+            const container = document.getElementById('mainListing');
+            container.innerHTML = '';
+
+            const items = Array.isArray(data.items) ? data.items : Object.values(data.items);
+            
+            CATS.forEach(cat => {
+                const catItems = items.filter(i => i && i.cat === cat.id);
+                if(catItems.length === 0) return;
+
+                let section = `
+                    <div class="cat-group">
+                        <h2 class="cat-h">${cat.name}</h2>
+                        <div class="grid">
+                `;
+
+                catItems.forEach(it => {
+                    section += `
+                        <div class="item-card">
+                            
+                            <div class="item-details">
+                                <div class="item-name">${it.name}</div>
+                                <div style="font-size:12px; color:var(--sub); margin-bottom:4px;">${it.desc || 'لا يوجد وصف'}</div>
+                                <div class="item-price">${it.price.toLocaleString()} د.ع</div>
+                            </div>
+                            <div class="item-actions">
+                                <button class="act-btn btn-edit" title="تعديل" onclick="editItem('${it.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
+                                <button class="act-btn btn-del" title="حذف" onclick="deleteItem('${it.id}')"><i class="ph-bold ph-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                section += `</div></div>`;
+                container.innerHTML += section;
+            });
+        }
+
+        function openModal(mode) {
+            document.getElementById('modalOverlay').style.display = 'flex';
+            if(mode === 'add') {
+                document.getElementById('mealForm').reset();
+                document.getElementById('mealId').value = '';
+                document.getElementById('mealDesc').value = '';
+                document.getElementById('modalTitle').innerText = 'إضافة وجبة جديدة';
+                
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+        }
+
+        function editItem(id) {
+            db.child('items').child(id).get().then(snap => {
+                const it = snap.val();
+                if(it) {
+                    openModal('edit');
+                    document.getElementById('modalTitle').innerText = 'تعديل الوجبة: ' + it.name;
+                    document.getElementById('mealId').value = it.id;
+                    document.getElementById('mealCat').value = it.cat;
+                    document.getElementById('mealName').value = it.name;
+                    document.getElementById('mealDesc').value = it.desc || '';
+                    document.getElementById('mealPrice').value = it.price;
+                    
+                    
+                }
+            });
+        }
+
+        function deleteItem(id) {
+            if(confirm('هل أنت متأكد من حذف هذه الوجبة نهائياً؟')) {
+                db.child('items').child(id).remove().then(() => {
+                    alert('تم الحذف بنجاح');
+                });
+            }
+        }
+
+        document.getElementById('mealForm').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('mealId').value || Date.now().toString();
+            const meal = {
+                id: id,
+                cat: document.getElementById('mealCat').value,
+                name: document.getElementById('mealName').value,
+                desc: document.getElementById('mealDesc').value,
+                price: parseInt(document.getElementById('mealPrice').value),
+                img: ''
+            };
+
+            const btn = e.submitter;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> جاري الحفظ...';
+
+            db.child('items').child(id).set(meal).then(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                closeModal();
+                showToast('تم حفظ الوجبة وتحديثها لجميع الزبائن ✅');
+            });
+        };
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.querySelector('span').innerText = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function syncWithFirebase() {
+            if(typeof initialData === 'undefined') {
+                alert('لم يتم العثور على البيانات الأصلية في ملف firebase-config.js');
+                return;
+            }
+            if(confirm('⚠️ تحذير: سيتم إعادة ضبط قائمة الطعام إلى الحالة الأصلية. سيتم حذف جميع تعديلاتك الحالية. هل تريد الاستمرار؟')) {
+                // Convert items array to object with IDs as keys
+                const itemsObj = {};
+                if(initialData.items) {
+                    initialData.items.forEach(it => {
+                        if(it.id) itemsObj[it.id] = it;
+                    });
+                }
+                
+                // Convert categories array to object
+                const catsObj = {};
+                if(initialData.categories) {
+                    initialData.categories.forEach(c => {
+                        if(c.id) catsObj[c.id] = c;
+                    });
+                }
+
+                const dataToSet = { 
+                    ...initialData, 
+                    items: itemsObj,
+                    categories: catsObj
+                };
+                
+                db.set(dataToSet).then(() => {
+                    alert('تمت المزامنة بنجاح! تم استعادة القائمة الأصلية.');
+                });
+            }
+        }
+
+        init();
+    </script>
+    <div id="toast">
+        <i class="ph-bold ph-check-circle"></i>
+        <span>تم حفظ البيانات بنجاح</span>
+    </div>
+</body>
+</html>

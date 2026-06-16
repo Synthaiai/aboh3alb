@@ -1,0 +1,9 @@
+{
+  "name": "مقهى ابو حالوب",
+  "short_name": "ابو حالوب",
+  "description": "منيو مقهى ابو حالوب — المأكولات والمشروبات والمشاوي",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#fdfaf7",
+  "theme_color": "#2b2b2b"
+}
