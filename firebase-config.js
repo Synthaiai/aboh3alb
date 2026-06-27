@@ -15,6 +15,7 @@ if (typeof firebase !== 'undefined') {
 
 const initialData = {
   categories: [
+    // === المأكولات (المطعم) ===
     { id: 'masgouf', name: 'سمك مسكوف' },
     { id: 'chicken', name: 'دجاج على الفحم' },
     { id: 'grills', name: 'المشويات' },
@@ -22,19 +23,22 @@ const initialData = {
     { id: 'sandwiches', name: 'ساندويش' },
     { id: 'cold_starters', name: 'المقبلات الباردة' },
     { id: 'hot_starters', name: 'المقبلات الحارة' },
+    // === الباريستا والحلويات ===
+    { id: 'hot_drinks', name: 'المشروبات الساخنة' },
+    { id: 'ice_coffee', name: 'ايس كوفي' },
+    { id: 'sweets', name: 'الحلويات' },
+    { id: 'fruits_cakes', name: 'فواكة كيك كنافة' },
+    { id: 'pancakes', name: 'بان كيك' },
+    { id: 'waffles', name: 'وافل' },
+    { id: 'ice_cream', name: 'ايس كريم' },
+    // === المشروبات ===
+    { id: 'juices', name: 'العصائر' },
+    { id: 'mojito', name: 'موهيتو' },
+    { id: 'smoothies', name: 'سموذي' },
+    { id: 'milkshake', name: 'ميلك شيك' },
     { id: 'soft_drinks', name: 'مشروبات غازية' },
     { id: 'energy_drinks', name: 'طاقة' },
-    { id: 'fruits_cakes', name: 'فواكة كيك كنافة' },
-    { id: 'mojito', name: 'موهيتو' },
-    { id: 'pancakes', name: 'بان كيك' },
-    { id: 'smoothies', name: 'سموذي' },
-    { id: 'hot_drinks', name: 'المشروبات الساخنة' },
-    { id: 'milkshake', name: 'ميلك شيك' },
-    { id: 'sweets', name: 'الحلويات' },
-    { id: 'ice_coffee', name: 'ايس كوفي' },
-    { id: 'ice_cream', name: 'ايس كريم' },
-    { id: 'juices', name: 'العصائر' },
-    { id: 'waffles', name: 'وافل' },
+    // === الأراكيل ===
     { id: 'hookah', name: 'الأراكيل' }
   ],
   items: [

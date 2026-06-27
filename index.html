@@ -283,6 +283,22 @@
     let CATS = [];
     let DB = {};
 
+    // الترتيب الثابت للأقسام: المأكولات ← الباريستا والحلويات ← المشروبات ← الأراكيل
+    const CAT_ORDER = [
+      'masgouf','chicken','grills','burgers','sandwiches','cold_starters','hot_starters',
+      'hot_drinks','ice_coffee','sweets','fruits_cakes','pancakes','waffles','ice_cream',
+      'juices','mojito','smoothies','milkshake','soft_drinks','energy_drinks',
+      'hookah'
+    ];
+    function sortCats(cats) {
+      return cats.slice().sort((a, b) => {
+        let ia = CAT_ORDER.indexOf(a.id), ib = CAT_ORDER.indexOf(b.id);
+        if (ia === -1) ia = CAT_ORDER.length;
+        if (ib === -1) ib = CAT_ORDER.length;
+        return ia - ib;
+      });
+    }
+
     function initFirebase() {
       // 1. INSTANT LOAD: Load local data immediately for zero-wait experience
       if (typeof initialData !== 'undefined') {
@@ -325,6 +341,7 @@
       } else if (typeof initialData !== 'undefined' && initialData.categories) {
         CATS = initialData.categories;
       }
+      CATS = sortCats(CATS);
 
       // Reset DB and build from categories
       DB = {};

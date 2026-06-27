@@ -837,6 +837,21 @@
         }
 
         let CATS = [];
+        // الترتيب الثابت للأقسام: المأكولات ← الباريستا والحلويات ← المشروبات ← الأراكيل
+        const CAT_ORDER = [
+            'masgouf','chicken','grills','burgers','sandwiches','cold_starters','hot_starters',
+            'hot_drinks','ice_coffee','sweets','fruits_cakes','pancakes','waffles','ice_cream',
+            'juices','mojito','smoothies','milkshake','soft_drinks','energy_drinks',
+            'hookah'
+        ];
+        function sortCats(cats) {
+            return cats.slice().sort((a, b) => {
+                let ia = CAT_ORDER.indexOf(a.id), ib = CAT_ORDER.indexOf(b.id);
+                if (ia === -1) ia = CAT_ORDER.length;
+                if (ib === -1) ib = CAT_ORDER.length;
+                return ia - ib;
+            });
+        }
         function esc(v) {
             return String(v ?? '').replace(/[&<>"']/g, ch => ({
                 '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
@@ -1018,7 +1033,7 @@
             db.child('categories').on('value', snap => {
                 const data = snap.val();
                 if(data) {
-                    CATS = Object.values(data);
+                    CATS = sortCats(Object.values(data));
                 } else {
                     CATS = [];
                 }

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'h3alb-v33';
+const CACHE_NAME = 'h3alb-v35';
 const ASSETS = [
   './',
   './index.html',
