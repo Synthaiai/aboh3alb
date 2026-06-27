@@ -1,9 +1,8 @@
-const CACHE_NAME = 'h3alb-v15';
+const CACHE_NAME = 'h3alb-v33';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
-  './menu.js',
   './firebase-config.js',
   './logo1.png',
   './texture.png',

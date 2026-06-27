@@ -4,25 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة أبو حالوب — Admin Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Changa:wght@700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Changa:wght@700;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
         :root {
-            --red: #2b2b2b;
-            --red-light: #f0ebe5;
-            --bg: #fdfaf7;
-            --white: #ffffff;
-            --ink: #111111;
-            --sub: #4e4e4e;
-            --border: #ece1d5;
-            --accent: #7a6657;
+            --red: #1f3329;
+            --red-light: #edf4ef;
+            --bg: #f4ecdf;
+            --white: #fffaf1;
+            --ink: #241c17;
+            --sub: #66574b;
+            --border: rgba(157, 106, 63, 0.24);
+            --accent: #b84336;
+            --brass: #d4aa62;
+            --sage: #7f9d84;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            background: var(--bg);
+            background:
+                linear-gradient(145deg, rgba(31, 51, 41, 0.15) 0 18%, transparent 18% 100%),
+                linear-gradient(22deg, rgba(184, 67, 54, 0.08) 0 18%, transparent 18% 100%),
+                var(--bg);
             font-family: 'Cairo', sans-serif;
             color: var(--ink);
             min-height: 100vh;
@@ -33,7 +39,9 @@
         #loginOverlay {
             position: fixed;
             inset: 0;
-            background: var(--bg);
+            background:
+                linear-gradient(145deg, rgba(31, 51, 41, 0.92), rgba(36, 28, 23, 0.86)),
+                url('texture.png') center / cover;
             z-index: 10000;
             display: flex;
             align-items: center;
@@ -42,40 +50,67 @@
         }
 
         .login-card {
-            background: var(--white);
-            padding: 40px;
-            border-radius: 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(180deg, rgba(255,250,241,0.98), rgba(255,246,231,0.94));
+            padding: 38px;
+            border-radius: 24px;
+            border: 1px solid rgba(255, 250, 241, 0.42);
+            box-shadow: 0 28px 80px rgba(0,0,0,0.22);
             width: 100%;
             max-width: 400px;
             text-align: center;
+            animation: adminLoginIn .5s cubic-bezier(.16,1,.3,1) both;
+        }
+        .login-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            left: 0;
+            height: 5px;
+            background: linear-gradient(90deg, var(--sage), var(--brass), var(--accent));
         }
 
-        .login-card i { font-size: 48px; color: var(--red); margin-bottom: 20px; }
-        .login-card h1 { font-family: 'Changa', sans-serif; font-size: 24px; margin-bottom: 10px; }
+        .login-card i { font-size: 46px; color: var(--red); margin-bottom: 18px; }
+        .login-card h1 { font-family: 'Changa', sans-serif; font-size: 24px; margin-bottom: 10px; color: var(--red); }
         .login-card input {
             width: 100%;
             padding: 15px;
-            border-radius: 12px;
-            border: 2px solid var(--border);
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
             margin-bottom: 20px;
             font-family: inherit;
             font-size: 16px;
             outline: none;
             text-align: center;
+            background: rgba(255, 250, 241, 0.82);
+            color: var(--ink);
+            transition: border-color .2s, box-shadow .2s, background .2s;
+        }
+        .login-card input:focus {
+            background: #fff;
+            border-color: var(--red);
+            box-shadow: 0 0 0 4px rgba(31, 51, 41, 0.10);
         }
         .login-card button {
             width: 100%;
             padding: 15px;
-            background: var(--red);
+            background: linear-gradient(135deg, var(--red), #365947);
             color: white;
             border: none;
-            border-radius: 12px;
+            border-radius: 14px;
             font-weight: 800;
             cursor: pointer;
             transition: 0.3s;
+            box-shadow: 0 12px 28px rgba(31, 51, 41, 0.20);
         }
-        .login-card button:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(90, 177, 184, 0.2); }
+        .login-card button:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(31, 51, 41, 0.28); }
+        .login-card button:disabled { opacity: .72; cursor: wait; transform: none; }
+        @keyframes adminLoginIn {
+            from { opacity: 0; transform: translateY(18px) scale(.98); }
+            to { opacity: 1; transform: none; }
+        }
 
         /* ── HEADER ── */
         .hdr {
@@ -126,8 +161,8 @@
             gap: 10px;
             transition: 0.2s;
         }
-        .btn-primary { background: var(--red); color: white; }
-        .btn-primary:hover { background: #111111; transform: translateY(-2px); }
+        .btn-primary { background: linear-gradient(135deg, var(--red), #365947); color: white; }
+        .btn-primary:hover { background: linear-gradient(135deg, #17261f, var(--red)); transform: translateY(-2px); }
         .btn-sync { background: var(--red-light); color: var(--red); }
 
         /* ── LISTING ── */
@@ -148,16 +183,17 @@
         }
 
         .item-card {
-            background: var(--white);
-            border-radius: 24px;
+            background: rgba(254, 252, 247, 0.88);
+            border-radius: 18px;
             padding: 20px;
-            border: 1px solid var(--border);
+            border: 1px solid rgba(111, 78, 55, 0.14);
+            border-right: 4.5px solid var(--accent); /* brand indicator */
             display: flex;
             align-items: center;
             gap: 20px;
             transition: 0.3s;
         }
-        .item-card:hover { border-color: var(--red); box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .item-card:hover { border-color: var(--red); box-shadow: 0 10px 30px rgba(111, 78, 55, 0.08); }
 
         .item-img {
             width: 80px;
@@ -169,7 +205,7 @@
 
         .item-details { flex: 1; }
         .item-name { font-weight: 800; font-size: 18px; margin-bottom: 4px; }
-        .item-price { color: var(--red); font-weight: 800; font-size: 16px; }
+        .item-price { color: var(--red); font-weight: 800; font-size: 16px; font-family: 'Outfit', sans-serif; }
 
         .item-actions { display: flex; flex-direction: column; gap: 8px; }
         .act-btn {
@@ -243,6 +279,45 @@
             border: 1px solid var(--border);
         }
         .preview-box img { height: 100%; width: 100%; object-fit: cover; }
+
+        .img-pick-btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 12px;
+            border: 2px dashed var(--border);
+            background: var(--bg);
+            color: var(--sub);
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: 0.2s;
+        }
+        .img-pick-btn:hover { border-color: var(--red); color: var(--red); background: var(--red-light, #fef2f2); }
+        .img-pick-btn i { font-size: 20px; }
+
+        .img-remove-btn {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(220, 38, 38, 0.92);
+            color: #fff;
+            font-size: 17px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        }
+        .img-hint { font-size: 12px; color: var(--sub); margin-top: 8px; opacity: 0.8; }
 
         .modal-footer { padding: 25px; display: flex; gap: 12px; background: #fafafa; }
 
@@ -409,7 +484,7 @@
             <i class="ph-bold ph-lock-key"></i>
             <h1>لوحة دخول المحترفين</h1>
             <p style="color:var(--sub); margin-bottom:20px; font-size:14px;">يرجى إدخال كلمة المرور للمتابعة</p>
-            <input type="password" id="adminPass" placeholder="كلمة المرور">
+            <input type="password" id="adminPass" placeholder="كلمة المرور" autocomplete="current-password" spellcheck="false" dir="ltr">
             <button onclick="checkPass()">دخول</button>
             <p id="error" style="color:#dc2626; margin-top:15px; font-size:14px; display:none; font-weight:700;"></p>
         </div>
@@ -510,7 +585,22 @@
                         <label>وصف الوجبة (اختياري)</label>
                         <textarea id="mealDesc" rows="3" placeholder="مثلاً: بصل، طماطة، طحينية..."></textarea>
                     </div>
-                    
+                    <div class="field">
+                        <label>صورة الوجبة (اختياري)</label>
+                        <button type="button" class="img-pick-btn" onclick="document.getElementById('mealImgFile').click()">
+                            <i class="ph-bold ph-image-square"></i> اختر صورة من جهازك
+                        </button>
+                        <input type="file" id="mealImgFile" accept="image/*" style="display:none" onchange="handleImgFile(this)">
+                        <input type="hidden" id="mealImg">
+                        <div class="preview-box" id="imgPreviewWrap" style="display:none; position:relative;">
+                            <img id="imgPreview" alt="معاينة الصورة">
+                            <button type="button" class="img-remove-btn" onclick="clearImg()" aria-label="إزالة الصورة">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
+                        </div>
+                        <div class="img-hint" id="imgHint">يُفضّل صورة مربّعة وواضحة. سيتم ضغطها تلقائياً.</div>
+                    </div>
+
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary" style="flex:1">حفظ البيانات</button>
@@ -548,43 +638,155 @@
 
     <script src="firebase-config.js"></script>
     <script>
-        /* ── SHA-256 Password Security ──
-           The actual password is NEVER stored here.
-           Only its SHA-256 hash is stored.
-           Hash of "NashmiAdmin2026" ↓↓ */
-        const PASS_HASH = 'ba2a566c17a8179c14f17ebdb8e58d8f15657f27ca2e65776464df3abb3043eb';
+        /* ── إعدادات الحماية (PBKDF2 بطبقتين) ──
+           كلمة المرور الحقيقية لا تُخزَّن إطلاقاً.
+           التحقق الحالي يشتق مفتاحاً أولياً متوافقاً مع كلمة المرور القديمة،
+           ثم يمرره إلى طبقة تقوية SHA-512 بملح مستقل وتكرارات أعلى.
+           هذا ليس "تشفيراً قابلاً للفك"؛ هو هاش بطيء غير عكسي لتصعيب التخمين. */
+        const AUTH = {
+            legacy: {
+                salt: 'da768118ae139cf726b7e8d0f927ea8c',
+                iter: 310000,
+                bits: 256,
+                hashAlg: 'SHA-256'
+            },
+            harden: {
+                salt: '0e6543e8186320a530a0efe1703873254ecb378112d8ebb0ba67d7b27de67592',
+                iter: 650000,
+                bits: 512,
+                hashAlg: 'SHA-512',
+                hash: '2527e583a9971ab4e3485523b1519cd96d5cc99902242566d66c562b83ede684cac7feee180423a80e9c9a1c3038734739000001992e08d5c30c8779ae737c1a'
+            }
+        };
+        /* ── بريد حساب المدير في Firebase Authentication ──
+           أنشئ هذا الحساب من Firebase Console (Authentication ← Users ← Add user)
+           بنفس هذا البريد وكلمة مرور قوية. المدير يدخل بكلمة المرور فقط. */
+        const ADMIN_EMAIL = 'admin@aboh3alb.com';
 
-        async function sha256(str) {
-            const buf  = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
-            return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+        const MAX_ATTEMPTS = 4;
+        const LOCK_MS      = 6 * 60 * 60 * 1000;   // قفل 6 ساعات
+        const LOCK_KEY     = 'h3alb_lock';          // يُخزَّن بـ localStorage فيصمد بعد إعادة تحميل الصفحة
+        const SESSION_UNTIL_KEY = 'adminAuthUntil';
+        const SESSION_MS = 45 * 60 * 1000;
+
+        function loginBtn() { return document.querySelector('.login-card button'); }
+
+        function getLock() {
+            try { return JSON.parse(localStorage.getItem(LOCK_KEY)) || { count: 0, lockUntil: 0 }; }
+            catch (e) { return { count: 0, lockUntil: 0 }; }
+        }
+        function setLock(o) { localStorage.setItem(LOCK_KEY, JSON.stringify(o)); }
+
+        function lockRemaining() {
+            const lock = getLock();
+            return (lock.lockUntil && Date.now() < lock.lockUntil) ? lock.lockUntil - Date.now() : 0;
+        }
+        function fmtRemaining(ms) {
+            const min = Math.ceil(ms / 60000);
+            const h = Math.floor(min / 60), m = min % 60;
+            return h > 0 ? `${h} ساعة و ${m} دقيقة` : `${m} دقيقة`;
+        }
+
+        function hexToBytes(hex) {
+            if (!hex || hex.length % 2 !== 0) throw new Error('Invalid hex salt');
+            return Uint8Array.from(hex.match(/../g).map(h => parseInt(h, 16)));
+        }
+
+        function bytesToHex(buffer) {
+            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function pbkdf2Hex(input, cfg) {
+            const enc  = new TextEncoder();
+            const km = await crypto.subtle.importKey('raw', enc.encode(input), { name: 'PBKDF2' }, false, ['deriveBits']);
+            const bits = await crypto.subtle.deriveBits({
+                name: 'PBKDF2',
+                salt: hexToBytes(cfg.salt),
+                iterations: cfg.iter,
+                hash: cfg.hashAlg
+            }, km, cfg.bits);
+            return bytesToHex(bits);
+        }
+
+        // طبقة توافق ثم طبقة تقوية. كلمة المرور الحالية تبقى نفسها.
+        async function derive(pw) {
+            const legacyKey = await pbkdf2Hex(pw, AUTH.legacy);
+            return pbkdf2Hex(`h3alb-admin-v2:${legacyKey}`, AUTH.harden);
+        }
+
+        // مقارنة ثابتة الزمن (تمنع تسريب المعلومات عبر فرق التوقيت)
+        function safeEqual(a = '', b = '') {
+            const max = Math.max(a.length, b.length);
+            let diff = a.length ^ b.length;
+            for (let i = 0; i < max; i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
+            return diff === 0;
+        }
+
+        // يطبّق حالة القفل على الواجهة (يُستدعى عند التحميل وبعد كل محاولة)
+        function enforceLockUI() {
+            const remaining = lockRemaining();
+            const input = document.getElementById('adminPass');
+            const btn   = loginBtn();
+            if (remaining > 0) {
+                if (input) input.disabled = true;
+                if (btn) { btn.disabled = true; btn.textContent = 'مقفل 🔒'; }
+                showErr(`🔒 الدخول مقفل بسبب محاولات خاطئة كثيرة. حاول بعد ${fmtRemaining(remaining)}.`);
+                return true;
+            }
+            if (input) input.disabled = false;
+            if (btn) { btn.disabled = false; btn.textContent = 'دخول'; }
+            return false;
+        }
+
+        function registerFailedAttempt() {
+            const lock = getLock();
+            lock.count = (lock.count || 0) + 1;
+            if (lock.count >= MAX_ATTEMPTS) {
+                lock.lockUntil = Date.now() + LOCK_MS;      // 4 محاولات → قفل 6 ساعات
+                setLock(lock);
+                enforceLockUI();
+                showErr(`🔒 استنفدت ${MAX_ATTEMPTS} محاولات! تم قفل الدخول 6 ساعات (يبقى القفل حتى بعد إعادة تحميل الصفحة).`);
+            } else {
+                setLock(lock);
+                showErr(`كلمة المرور خاطئة! تبقى لك ${MAX_ATTEMPTS - lock.count} محاولة/محاولات قبل القفل 6 ساعات.`);
+            }
         }
 
         async function checkPass() {
-            const now      = Date.now();
-            let attempts   = JSON.parse(localStorage.getItem('h3albLoginAttempts') || '{"count":0,"time":0}');
+            if (enforceLockUI()) return;   // الدخول مقفل حالياً
 
-            // Reset counter after 1 hour
-            if (now - attempts.time > 3600000) attempts = { count: 0, time: 0 };
+            const input = document.getElementById('adminPass');
+            const val   = input.value || '';
+            if (!val) { showErr('يرجى إدخال كلمة المرور.'); return; }
 
-            if (attempts.count >= 3) {
-                const remaining = Math.ceil((3600000 - (now - attempts.time)) / 60000);
-                showErr(`لقد استنفدت المحاولات! حاول بعد ${remaining} دقيقة.`);
+            if (typeof firebase === 'undefined' || !firebase.auth) {
+                showErr('تعذّر تحميل نظام المصادقة. تحقق من اتصالك بالإنترنت ثم أعد المحاولة.');
                 return;
             }
 
-            const input = document.getElementById('adminPass').value;
-            const hash  = await sha256(input);
+            const btn = loginBtn();
+            if (btn) { btn.disabled = true; btn.textContent = '...جارٍ التحقق'; }
 
-            if (hash === PASS_HASH) {
-                localStorage.removeItem('h3albLoginAttempts');
-                document.getElementById('loginOverlay').style.display = 'none';
-                sessionStorage.setItem('adminAuth', 'true');
-                init();
-            } else {
-                attempts.count++;
-                attempts.time = now;
-                localStorage.setItem('h3albLoginAttempts', JSON.stringify(attempts));
-                showErr(`كلمة المرور خاطئة! تبقى لك ${3 - attempts.count} محاولة/محاولات.`);
+            try {
+                await firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL, val);
+                // النجاح: onAuthStateChanged سيكشف اللوحة ويحمّل البيانات
+                localStorage.removeItem(LOCK_KEY);
+                input.value = '';
+            } catch (err) {
+                if (btn) { btn.disabled = false; btn.textContent = 'دخول'; }
+                const code = err && err.code ? err.code : '';
+                if (code === 'auth/operation-not-allowed') {
+                    showErr('⚠️ لم يُفعَّل "البريد/كلمة المرور" في Firebase بعد. فعّله من Console ثم أعد المحاولة.');
+                } else if (code === 'auth/user-not-found') {
+                    showErr('⚠️ لم يُنشأ حساب المدير في Firebase بعد. أنشئه من Authentication ← Users.');
+                } else if (code === 'auth/network-request-failed') {
+                    showErr('تعذّر الاتصال بالإنترنت. تحقق من الشبكة ثم أعد المحاولة.');
+                } else if (code === 'auth/too-many-requests') {
+                    showErr('🔒 محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة.');
+                } else {
+                    // كلمة مرور خاطئة أو بيانات اعتماد غير صالحة → عدّ المحاولة
+                    registerFailedAttempt();
+                }
             }
         }
 
@@ -594,18 +796,20 @@
             err.style.display = 'block';
         }
 
-        // Allow Enter key on password field
+        // مفتاح Enter
         document.getElementById('adminPass').addEventListener('keydown', e => {
             if (e.key === 'Enter') checkPass();
         });
 
-        if(sessionStorage.getItem('adminAuth') === 'true') {
-            document.getElementById('loginOverlay').style.display = 'none';
-        }
-
         function logout() {
             sessionStorage.removeItem('adminAuth');
-            location.reload();
+            sessionStorage.removeItem(SESSION_UNTIL_KEY);
+            const done = () => location.reload();
+            if (typeof firebase !== 'undefined' && firebase.auth) {
+                firebase.auth().signOut().finally(done);
+            } else {
+                done();
+            }
         }
 
         function testFirebase() {
@@ -628,11 +832,130 @@
                     }
                 });
             }).catch(err => {
-                alert("❌ فشل الاتصال! تأكد من إعدادات Rules في Firebase واجعلها true.\nالخطأ: " + err.message);
+                alert("❌ فشل الاتصال! تأكد من قواعد Firebase بدون فتح الكتابة للعامة. استخدم Firebase Auth وصلاحية admin للكتابة.\nالخطأ: " + err.message);
             });
         }
 
         let CATS = [];
+        function esc(v) {
+            return String(v ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            }[ch]));
+        }
+        function attr(v) { return esc(v).replace(/`/g, '&#96;'); }
+        function jsArg(v) {
+            return String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+        }
+        function safeImgUrl(raw) {
+            const val = String(raw ?? '').trim();
+            if (!val) return '';
+            if (/^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/=]+$/i.test(val)) return val;
+            if (/[<>"'`]/.test(val)) return '';
+            if (/^https?:\/\//i.test(val)) {
+                try {
+                    const url = new URL(val);
+                    return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+                } catch (e) { return ''; }
+            }
+            if (/[\\:]/.test(val) || !/\.(webp|png|jpe?g|gif|avif)$/i.test(val)) return '';
+            return encodeURI(val);
+        }
+        function money(v) {
+            const n = Number(v);
+            return Number.isFinite(n) ? n.toLocaleString() : '0';
+        }
+
+        /* ── اختيار صورة الوجبة من الجهاز + ضغطها تلقائياً ── */
+        const IMG_MAX_DIM   = 560;      // أقصى عرض/ارتفاع بعد التصغير (خفيف يكفي للكروت والتفاصيل)
+        const IMG_START_Q   = 0.68;     // جودة البداية
+        const IMG_MIN_Q     = 0.40;     // أدنى جودة مسموحة
+        const IMG_TARGET_KB = 40;       // الحجم المستهدف لكل صورة — أخف ما يمكن مع وضوح مقبول
+
+        function setImgPreview(dataUrl) {
+            const wrap = document.getElementById('imgPreviewWrap');
+            const hint = document.getElementById('imgHint');
+            if (dataUrl) {
+                document.getElementById('imgPreview').src = dataUrl;
+                wrap.style.display = 'block';
+                hint.style.display = 'none';
+            } else {
+                document.getElementById('imgPreview').removeAttribute('src');
+                wrap.style.display = 'none';
+                hint.style.display = 'block';
+            }
+        }
+
+        function clearImg() {
+            document.getElementById('mealImg').value = '';
+            document.getElementById('mealImgFile').value = '';
+            setImgPreview('');
+        }
+
+        // يدعم WebP إن توفّر بالمتصفح (أصغر حجماً)، وإلا JPEG
+        function canvasType() {
+            try {
+                const c = document.createElement('canvas');
+                if (c.toDataURL('image/webp').indexOf('data:image/webp') === 0) return 'image/webp';
+            } catch (e) {}
+            return 'image/jpeg';
+        }
+
+        function compressImage(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('تعذّر قراءة الملف'));
+                reader.onload = () => {
+                    const img = new Image();
+                    img.onerror = () => reject(new Error('ملف الصورة غير صالح'));
+                    img.onload = () => {
+                        let { width, height } = img;
+                        if (width > height && width > IMG_MAX_DIM) {
+                            height = Math.round(height * IMG_MAX_DIM / width); width = IMG_MAX_DIM;
+                        } else if (height >= width && height > IMG_MAX_DIM) {
+                            width = Math.round(width * IMG_MAX_DIM / height); height = IMG_MAX_DIM;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, width, height);
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // قلّل الجودة تدريجياً حتى نصل للحجم المستهدف
+                        const type = canvasType();
+                        const targetBytes = IMG_TARGET_KB * 1024;
+                        let q = IMG_START_Q;
+                        let out = canvas.toDataURL(type, q);
+                        const bytes = u => Math.ceil((u.length - u.indexOf(',') - 1) * 0.75);
+                        while (bytes(out) > targetBytes && q > IMG_MIN_Q) {
+                            q = Math.max(IMG_MIN_Q, q - 0.08);
+                            out = canvas.toDataURL(type, q);
+                        }
+                        resolve(out);
+                    };
+                    img.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function handleImgFile(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('يرجى اختيار ملف صورة فقط.');
+                input.value = '';
+                return;
+            }
+            try {
+                const dataUrl = await compressImage(file);
+                document.getElementById('mealImg').value = dataUrl;
+                setImgPreview(dataUrl);
+            } catch (err) {
+                alert(err.message || 'تعذّر معالجة الصورة.');
+                input.value = '';
+            }
+        }
 
         function addCategory() {
             const name = document.getElementById('newCatName').value.trim();
@@ -669,8 +992,8 @@
             }
             container.innerHTML = CATS.map(c => `
                 <div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid #f5f5f5;">
-                    <span style="font-weight:700;">${c.name}</span>
-                    <button class="act-btn btn-del" onclick="deleteCategory('${c.id}')"><i class="ph-bold ph-trash"></i></button>
+                    <span style="font-weight:700;">${esc(c.name)}</span>
+                    <button class="act-btn btn-del" onclick="deleteCategory('${jsArg(c.id)}')"><i class="ph-bold ph-trash"></i></button>
                 </div>
             `).join('');
         }
@@ -679,7 +1002,7 @@
             const select = document.getElementById('mealCat');
             const currentVal = select.value;
             select.innerHTML = '<option value="">اختر القسم...</option>' + 
-                CATS.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+                CATS.map(c => `<option value="${attr(c.id)}">${esc(c.name)}</option>`).join('');
             select.value = currentVal;
         }
 
@@ -749,22 +1072,26 @@
 
                 let section = `
                     <div class="cat-group">
-                        <h2 class="cat-h">${cat.name}</h2>
+                        <h2 class="cat-h">${esc(cat.name)}</h2>
                         <div class="grid">
                 `;
 
                 catItems.forEach(it => {
+                    const safeImg = safeImgUrl(it.img);
+                    const imgHtml = safeImg 
+                        ? `<img src="${attr(safeImg)}" class="item-img" alt="${attr(it.name)}">` 
+                        : `<div class="item-img" style="display:flex; align-items:center; justify-content:center; background:var(--red-light); color:var(--accent);"><i class="ph-bold ph-image-square" style="font-size:24px;"></i></div>`;
                     section += `
                         <div class="item-card">
-                            
+                            ${imgHtml}
                             <div class="item-details">
-                                <div class="item-name">${it.name}</div>
-                                <div style="font-size:12px; color:var(--sub); margin-bottom:4px;">${it.desc || 'لا يوجد وصف'}</div>
-                                <div class="item-price">${it.price.toLocaleString()} د.ع</div>
+                                <div class="item-name">${esc(it.name)}</div>
+                                <div style="font-size:12px; color:var(--sub); margin-bottom:4px;">${esc(it.desc || 'لا يوجد وصف')}</div>
+                                <div class="item-price">${money(it.price)} د.ع</div>
                             </div>
                             <div class="item-actions">
-                                <button class="act-btn btn-edit" title="تعديل" onclick="editItem('${it.id}')"><i class="ph-bold ph-pencil-simple"></i></button>
-                                <button class="act-btn btn-del" title="حذف" onclick="deleteItem('${it.id}')"><i class="ph-bold ph-trash"></i></button>
+                                <button class="act-btn btn-edit" title="تعديل" onclick="editItem('${jsArg(it.id)}')"><i class="ph-bold ph-pencil-simple"></i></button>
+                                <button class="act-btn btn-del" title="حذف" onclick="deleteItem('${jsArg(it.id)}')"><i class="ph-bold ph-trash"></i></button>
                             </div>
                         </div>
                     `;
@@ -781,8 +1108,8 @@
                 document.getElementById('mealForm').reset();
                 document.getElementById('mealId').value = '';
                 document.getElementById('mealDesc').value = '';
+                clearImg();
                 document.getElementById('modalTitle').innerText = 'إضافة وجبة جديدة';
-                
             }
         }
 
@@ -801,8 +1128,10 @@
                     document.getElementById('mealName').value = it.name;
                     document.getElementById('mealDesc').value = it.desc || '';
                     document.getElementById('mealPrice').value = it.price;
-                    
-                    
+                    document.getElementById('mealImgFile').value = '';
+                    const existingImg = it.img || '';
+                    document.getElementById('mealImg').value = existingImg;
+                    setImgPreview(safeImgUrl(existingImg));
                 }
             });
         }
@@ -818,13 +1147,23 @@
         document.getElementById('mealForm').onsubmit = (e) => {
             e.preventDefault();
             const id = document.getElementById('mealId').value || Date.now().toString();
+            const price = Number.parseInt(document.getElementById('mealPrice').value, 10);
+            const img = safeImgUrl(document.getElementById('mealImg').value);
+            if (!Number.isFinite(price) || price < 0) {
+                alert('يرجى إدخال سعر صحيح.');
+                return;
+            }
+            if (document.getElementById('mealImg').value.trim() && !img) {
+                alert('رابط الصورة غير آمن أو ليس بصيغة صورة مدعومة.');
+                return;
+            }
             const meal = {
                 id: id,
                 cat: document.getElementById('mealCat').value,
-                name: document.getElementById('mealName').value,
-                desc: document.getElementById('mealDesc').value,
-                price: parseInt(document.getElementById('mealPrice').value),
-                img: ''
+                name: document.getElementById('mealName').value.trim(),
+                desc: document.getElementById('mealDesc').value.trim(),
+                price,
+                img
             };
 
             const btn = e.submitter;
@@ -881,7 +1220,26 @@
             }
         }
 
-        init();
+        // ── تمهيد حالة الدخول عبر Firebase Auth ──
+        // مسجّل دخول (Firebase يحفظ الجلسة تلقائياً) → ادخل وحمّل البيانات.
+        // غير مسجّل → أظهر شاشة الدخول/القفل. الكتابة في السحابة لا تنجح إلا بعد المصادقة.
+        (function bootAuth() {
+            if (typeof firebase === 'undefined' || !firebase.auth) {
+                enforceLockUI();
+                showErr('تعذّر تحميل نظام المصادقة. تحقق من اتصالك بالإنترنت.');
+                return;
+            }
+            firebase.auth().onAuthStateChanged(user => {
+                const overlay = document.getElementById('loginOverlay');
+                if (user) {
+                    overlay.style.display = 'none';
+                    if (!db) init();
+                } else {
+                    overlay.style.display = '';   // يرجع لقيمة CSS الافتراضية
+                    enforceLockUI();              // يطبّق القفل إن كان فعّالاً
+                }
+            });
+        })();
     </script>
     <div id="toast">
         <i class="ph-bold ph-check-circle"></i>

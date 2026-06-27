@@ -10,9 +10,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
   <link rel="preconnect" href="https://unpkg.com">
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@700;800&display=swap" as="style">
+  <link rel="preload"
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@700;800&family=Outfit:wght@400;700&display=swap"
+    as="style">
   <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&family=Cairo:wght@300;400;600;700;800&family=Lalezar&family=Aref+Ruqaa:wght@400;700&family=Readex+Pro:wght@200..700&family=Changa:wght@400;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&family=Cairo:wght@300;400;600;700;800&family=Lalezar&family=Aref+Ruqaa:wght@400;700&family=Readex+Pro:wght@200..700&family=Changa:wght@400;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -32,22 +34,17 @@
 
   <!-- HEADER -->
   <header class="hdr">
-    <div class="hdr-right">
-      <!-- Empty for balance -->
-    </div>
-    <div class="hdr-center">
+    <div class="hdr-brand">
       <div class="hdr-logo-wrap">
-        
         <img src="logo1.png" class="hdr-logo-img" alt="أبو حالوب">
-      
       </div>
+      <h1 class="hdr-title-ar">مقهى أبو حالوب</h1>
+      <h2 class="hdr-title-en">Abo Haloub Cafe</h2>
     </div>
-    <div class="hdr-left">
-      <button class="hdr-btn" onclick="openDrawer()" aria-label="سلة الطلبات">
-        <i class="ph-bold ph-shopping-cart-simple"></i>
-        <span class="hdr-dot" id="hdrDot">0</span>
-      </button>
-    </div>
+    <button class="hdr-btn" onclick="openDrawer()" aria-label="سلة الطلبات">
+      <i class="ph-bold ph-shopping-cart-simple"></i>
+      <span class="hdr-dot" id="hdrDot">0</span>
+    </button>
   </header>
 
 
@@ -73,11 +70,15 @@
     <!-- HOME -->
     <section id="home" class="sec">
       <!-- WELCOME CARD (نبذة) -->
-      <div style="background: #F8F3E8; border: 1px solid #D8C28A; padding: 22px; border-radius: 24px; margin-bottom: 26px; text-align: center; direction: rtl; box-shadow: 0 6px 18px rgba(17, 17, 17, 0.06);">
-        <h2 style="font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 22px; color: var(--red); margin-bottom: 12px; font-weight: 800;">زبائننا الكرام ☕</h2>
-        <p style="font-size: 14.5px; line-height: 1.8; color: var(--ink); font-weight: 600; margin-bottom: 8px;">تأسس منذ عام 1993، مقهى ابو حالوب يجمع بين الأصالة والفخامة ليقدّم تجربة مميزة بطابع عصري. نقدم نخبة من الأطباق الشرقية والمشويات الطازجة مع مشروبات متنوعة تُرضي جميع الأذواق.</p>
-        <p style="font-size: 14.5px; line-height: 1.8; color: var(--ink); font-weight: 600; margin-bottom: 8px;">أجواؤنا صُممت بعناية لتكون راقية ومريحة، تجمع بين الهدوء واللمسة الشبابية لتناسب جميع أوقاتكم.</p>
-        <p style="font-size: 13.5px; color: var(--tan-dk); font-weight: 700; margin-top: 10px; border-top: 1px dashed #D8C28A; padding-top: 10px;">تواجدكم يضيف لنا التميز.. شكراً لثقتكم الدائمة ❤️</p>
+      <div class="intro-card">
+        <h2 class="intro-title">زبائننا الكرام ☕</h2>
+        <p class="intro-copy">تأسس
+          منذ عام 1993، مقهى ابو حالوب يجمع بين الأصالة والفخامة ليقدّم تجربة مميزة بطابع عصري. نقدم نخبة من الأطباق
+          الشرقية والمشويات الطازجة مع مشروبات متنوعة تُرضي جميع الأذواق.</p>
+        <p class="intro-copy">أجواؤنا
+          صُممت بعناية لتكون راقية ومريحة، تجمع بين الهدوء واللمسة الشبابية لتناسب جميع أوقاتكم.</p>
+        <p class="intro-note">
+          تواجدكم يضيف لنا التميز.. شكراً لثقتكم الدائمة ❤️</p>
       </div>
       <div class="sec-h">المميزات</div>
       <div class="feat-wrap" id="featWrap">
@@ -136,9 +137,10 @@
   <!-- ITEM MODAL -->
   <div class="mov" id="mov" onclick="closeModalOv(event)">
     <div class="modal">
-      
+
       <div class="m-body">
         <div class="m-handle"></div>
+        <div id="mImgW"></div>
         <div class="m-top">
           <div class="m-name" id="mName"></div>
           <div class="m-price" id="mPrice"></div>
@@ -178,6 +180,20 @@
   <!-- TOAST -->
   <div class="toast" id="toast"><i class="ph-fill ph-check-circle"></i><span id="toastTxt"></span></div>
 
+  <!-- LOCATION ASK NOTIFICATION -->
+  <div class="locask" id="locAsk" role="dialog" aria-label="تحديد الموقع">
+    <div class="locask-ic"><i class="ph-fill ph-map-pin-line"></i></div>
+    <div class="locask-body">
+      <div class="locask-title">حدّد موقعك للتوصيل 📍</div>
+      <div class="locask-msg" id="locAskMsg">اسمح بالوصول لموقعك ليصلك طلبك بدقّة وسرعة.</div>
+      <div class="locask-btns">
+        <button class="locask-yes" onclick="requestLocation()">تحديد موقعي</button>
+        <button class="locask-no" onclick="dismissLocAsk()">لاحقاً</button>
+      </div>
+    </div>
+    <button class="locask-x" onclick="dismissLocAsk()" aria-label="إغلاق"><i class="ph-bold ph-x"></i></button>
+  </div>
+
   <!-- CHECKOUT FORM MODAL -->
   <div class="fov" id="fov" onclick="closeFormOv(event)">
     <div class="fmodal" id="fmodal-content">
@@ -186,59 +202,48 @@
       <div class="fm-grp">
         <label>الفرع</label>
         <select id="custBranch" onchange="updateBranchInfo(this.value)">
-          <option value="">اختر الفرع...</option>
-          <option value="حي الجامعة">فرع حي الجامعة</option>
-          <option value="الحارثية">فرع الحارثية</option>
-          <option value="الأعظمية">فرع الأعظمية</option>
+          <option value="بسماية" selected>فرع بسماية</option>
         </select>
         <div id="branchAddress" class="fm-hint" style="margin-top:8px; display:none;"></div>
       </div>
       <div class="fm-grp">
-        <label>المنطقة (بغداد)</label>
-        <select id="custArea">
-          <option value="">اختر منطقتك...</option>
-          <optgroup label="جانب الكرخ">
-            <option value="حي الجامعة">حي الجامعة</option>
-            <option value="المنصور">المنصور</option>
-            <option value="الداوودي">الداوودي</option>
-            <option value="اليرموك">اليرموك</option>
-            <option value="الحارثية">الحارثية</option>
-            <option value="السيدية">السيدية</option>
-            <option value="الدورة">الدورة</option>
-            <option value="اليرموك">اليرموك</option>
-            <option value="العامرية">العامرية</option>
-            <option value="الغزالية">الغزالية</option>
-            <option value="السيديه">السيدية</option>
-            <option value="حي الجهاد">حي الجهاد</option>
-            <option value="البياع">البياع</option>
-            <option value="الاعلام">الاعلام</option>
-            <option value="التراث">التراث</option>
-            <option value="القادسية">القادسية</option>
-          </optgroup>
-          <optgroup label="جانب الرصافة">
-            <option value="الكرادة">الكرادة</option>
-            <option value="الجادرية">الجادرية</option>
-            <option value="زيونة">زيونة</option>
-            <option value="شارع فلسطين">شارع فلسطين</option>
-            <option value="الغدير">الغدير</option>
-            <option value="الأعظمية">الأعظمية</option>
-            <option value="القاهرة">القاهرة</option>
-            <option value="الصليخ">الصليخ</option>
-            <option value="حي البنوك">حي البنوك</option>
-            <option value="الحسينية">الحسينية</option>
-            <option value="الشعب">الشعب</option>
-            <option value="بغداد الجديدة">بغداد الجديدة</option>
-            <option value="الزعفرانية">الزعفرانية</option>
-          </optgroup>
-          <option value="أخرى">منطقة أخرى...</option>
-        </select>
-      </div>
-      <div class="fm-grp">
-        <label>الاسم الكريم</label>
+        <label>الاسم الكريم <span style="color:#c0392b">*</span></label>
         <input type="text" id="custName" placeholder="مثال: أحمد عبد الله">
       </div>
       <div class="fm-grp">
-        <label>رقم الهاتف</label>
+        <label>المنطقة</label>
+        <select id="custArea" disabled>
+          <option value="بسماية" selected>بسماية</option>
+        </select>
+      </div>
+      <div class="fm-grp">
+        <label>البلوك <span style="color:#c0392b">*</span></label>
+        <select id="custBlock" onchange="toggleBlockDetails(this.value)">
+          <option value="">اختر البلوك...</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+      <div id="blockDetails" style="display:none">
+        <div class="fm-grp">
+          <label>رقم البلوك <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custBlockNum" placeholder="مثال: 5" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
+        </div>
+        <div class="fm-grp">
+          <label>البناية <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custBuilding" placeholder="مثال: 12" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
+        </div>
+        <div class="fm-grp">
+          <label>الطابق <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custFloor" placeholder="مثال: 2" inputmode="numeric" min="0" dir="ltr" style="text-align:right">
+        </div>
+        <div class="fm-grp">
+          <label>رقم الشقة <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custApt" placeholder="مثال: 3" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
+        </div>
+      </div>
+      <div class="fm-grp">
+        <label>رقم الهاتف <span style="color:#c0392b">*</span></label>
         <input type="tel" id="custPhone" placeholder="07xxxxxxxxx" dir="ltr" style="text-align:right">
       </div>
       <button class="fm-submit" onclick="sendOrder()">
@@ -267,13 +272,13 @@
        ───────────────────────────────────────────────── */
     const SUGGEST_MAP = {
       sandwiches: ['drinks', 'plates'],
-      rolls:      ['drinks', 'plates'],
-      meals:      ['drinks'],
-      lamma:      ['drinks', 'plates'],
-      plates:     ['drinks', 'mansaf'],
-      mansaf:     ['drinks'],
-      weights:    ['drinks'],
-      drinks:     ['sandwiches', 'rolls'],
+      rolls: ['drinks', 'plates'],
+      meals: ['drinks'],
+      lamma: ['drinks', 'plates'],
+      plates: ['drinks', 'mansaf'],
+      mansaf: ['drinks'],
+      weights: ['drinks'],
+      drinks: ['sandwiches', 'rolls'],
     };
     let CATS = [];
     let DB = {};
@@ -290,7 +295,7 @@
       }
 
       const dbRef = firebase.database().ref('h3alb_menu');
-      
+
       // Use 'once' first for a fast single fetch to save data/bandwidth
       dbRef.once('value').then(snap => {
         const data = snap.val();
@@ -308,7 +313,7 @@
       // Robustness check: if data is empty or missing items, try to fallback to initialData
       let finalData = data;
       const hasItems = data && data.items && (Array.isArray(data.items) ? data.items.length > 0 : Object.keys(data.items).length > 0);
-      
+
       if (!hasItems && typeof initialData !== 'undefined') {
         console.warn('Fetched data has no items, falling back to initialData');
         finalData = initialData;
@@ -338,29 +343,33 @@
     function renderLiveUI() {
       // 1. Render Tabs
       const tabContainer = document.querySelector('.tabs-s');
-      const currentOn = tabContainer.querySelector('.tb.on')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1] || 'home';
-      
-      let tabHtml = `<button class="tb ${currentOn === 'home' ? 'on' : ''}" onclick="goTab('home',this)">الرئيسية</button>`;
+      const currentOn = tabContainer.querySelector('.tb.on')?.dataset?.target || 'home';
+
+      let tabHtml = `<button class="tb ${currentOn === 'home' ? 'on' : ''}" data-target="home" onclick="goTab('home',this)">الرئيسية</button>`;
       CATS.forEach(c => {
-        tabHtml += `<button class="tb ${currentOn === c.id ? 'on' : ''}" onclick="goTab('${c.id}',this)">${c.name}</button>`;
+        const sid = safeDomId(c.id);
+        tabHtml += `<button class="tb ${currentOn === sid ? 'on' : ''}" data-target="${attr(sid)}" onclick="goTab('${jsArg(sid)}',this)">${esc(c.name)}</button>`;
       });
       tabContainer.innerHTML = tabHtml;
 
       // 2. Render Sections (Viewport)
       const vp = document.getElementById('mainVp');
       const homeSec = document.getElementById('home');
-      
+
       // Preserve home but clear everything else
       let vpChildHtml = homeSec.outerHTML;
       CATS.forEach(c => {
+        const sid = safeDomId(c.id);
         vpChildHtml += `
-          <section id="${c.id}" class="sec">
-            <div class="sec-h">${c.name}</div>
-            <div class="grid" id="${c.id}G"></div>
+          <section id="${attr(sid)}" class="sec">
+            <div class="sec-h">${esc(c.name)}</div>
+            <div class="grid" id="${attr(sid)}G"></div>
           </section>
         `;
       });
       vp.innerHTML = vpChildHtml;
+      const activeSec = document.getElementById(currentOn) || document.getElementById('home');
+      if (activeSec) activeSec.classList.add('sec-active');
 
       // Re-observe sections for tab switching
       setTimeout(() => {
@@ -369,10 +378,10 @@
     }
 
     const FEAT = [
-      { id: 1001, name: 'سمك مسكوف عراقي', tag: 'المسكوف البغدادي الأصيل', price: 15000, col: 'linear-gradient(135deg,#2b2b2b,#111111)' },
-      { id: 2001, name: 'دجاج مشوي بالتنور', tag: 'مشوي على حطب الحمضيات', price: 15000, col: 'linear-gradient(135deg,#333333,#1a1a1a)' },
-      { id: 3001, name: 'نفر كباب لحم عراقي', tag: 'لحم بلدي عراقي فاخر', price: 15000, col: 'linear-gradient(135deg,#444444,#222222)' },
-      { id: 4002, name: 'بركر لحم بالجبن', tag: 'برجر كلاسيكي بالجبنة السائحة', price: 6500, col: 'linear-gradient(135deg,#1a1a1a,#0a0a0a)' }
+      { id: 1001, name: 'سمك مسكوف عراقي', tag: 'المسكوف البغدادي الأصيل', price: 15000, col: 'linear-gradient(135deg,#17261f,#8a5638)' },
+      { id: 2001, name: 'دجاج مشوي بالتنور', tag: 'مشوي على حطب الحمضيات', price: 15000, col: 'linear-gradient(135deg,#263e31,#b84336)' },
+      { id: 3001, name: 'نفر كباب لحم عراقي', tag: 'لحم بلدي عراقي فاخر', price: 15000, col: 'linear-gradient(135deg,#2b241d,#9b6a3c)' },
+      { id: 4002, name: 'بركر لحم بالجبن', tag: 'برجر كلاسيكي بالجبنة السائحة', price: 6500, col: 'linear-gradient(135deg,#1a2b32,#b88746)' }
     ];
 
     let cart = [];
@@ -382,6 +391,37 @@
     /* ── UTILS ── */
     function all() { return Object.values(DB).flat(); }
     function getItem(id) { return all().find(i => String(i.id) === String(id)); }
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      }[ch]));
+    }
+    function attr(v) { return esc(v).replace(/`/g, '&#96;'); }
+    function jsArg(v) {
+      return String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\r?\n/g, ' ');
+    }
+    function safeDomId(v) {
+      const raw = String(v ?? '').trim().replace(/[^\w-]/g, '_');
+      return raw || 'section';
+    }
+    function safeImgUrl(raw) {
+      const val = String(raw ?? '').trim();
+      if (!val) return '';
+      if (/^data:image\/(png|jpe?g|webp|gif|avif);base64,[A-Za-z0-9+/=]+$/i.test(val)) return val;
+      if (/[<>"'`]/.test(val)) return '';
+      if (/^https?:\/\//i.test(val)) {
+        try {
+          const url = new URL(val);
+          return ['http:', 'https:'].includes(url.protocol) ? url.href : '';
+        } catch (e) { return ''; }
+      }
+      if (/[\\:]/.test(val) || !/\.(webp|png|jpe?g|gif|avif)$/i.test(val)) return '';
+      return encodeURI(val);
+    }
+    function money(v) {
+      const n = Number(v);
+      return Number.isFinite(n) ? n.toLocaleString() : '0';
+    }
     function phTag() {
       return `<div class="ic-ph"></div>`;
     }
@@ -393,22 +433,204 @@
 
     /* ── RENDER CARD ── */
     function bdgInline(b) {
-      if (b === 'new') return `<span class="ibdg-inline" style="background:var(--tan); color:#fff; font-size:10px; font-weight:800; padding:3px 9px; border-radius:20px; display:inline-block; margin-bottom:6px; font-family: 'IBM Plex Sans Arabic', sans-serif;">جديد</span>`;
-      if (b === 'popular') return `<span class="ibdg-inline" style="background:var(--red); color:#fff; font-size:10px; font-weight:800; padding:3px 9px; border-radius:20px; display:inline-block; margin-bottom:6px; font-family: 'IBM Plex Sans Arabic', sans-serif;">الأكثر طلباً</span>`;
+      if (b === 'new') return `<span class="ibdg-inline" style="background:linear-gradient(135deg, var(--tan), var(--tan-lt)); color:#fff; font-size:9.5px; font-weight:700; padding:3px 10px; border-radius:20px; display:inline-block; margin-bottom:8px; font-family:'Cairo',sans-serif; letter-spacing:0;">جديد</span>`;
+      if (b === 'popular') return `<span class="ibdg-inline" style="background:linear-gradient(135deg, #B84336, #6F221A); color:#fff; font-size:9.5px; font-weight:700; padding:3px 10px; border-radius:20px; display:inline-block; margin-bottom:8px; font-family:'Cairo',sans-serif; letter-spacing:0;">الأكثر طلباً</span>`;
       return '';
+    }
+
+    const CATEGORY_IMAGES = {
+      masgouf: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=80',
+      chicken: 'https://images.unsplash.com/photo-1598103442097-8b743e2b95c6?w=600&q=80',
+      grills: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80',
+      burgers: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+      sandwiches: 'https://images.unsplash.com/photo-1626700051175-6518c4793f4f?w=600&q=80',
+      cold_starters: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=80',
+      hot_starters: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=80',
+      soft_drinks: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+      energy_drinks: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+      fruits_cakes: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+      mojito: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+      pancakes: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+      smoothies: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+      hot_drinks: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&q=80',
+      milkshake: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+      sweets: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+      ice_coffee: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+      ice_cream: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+      juices: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+      waffles: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+      hookah: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'
+    };
+
+    /* ── LOCAL IMAGES (WebP) ──
+       صور حقيقية محلية لأبو حالوب. لها الأولوية على صور الإنترنت.
+       المفتاح = اسم الصنف بالضبط. أي صنف غير مذكور يبقى على صورة الإنترنت. */
+    const LOCAL_IMG = {
+      'سمك مسكوف كيلو': 'مسكوف.webp',
+      'دجاج مشوي بالتنور': 'دجاج تنور.webp',
+      'نص دجاج مشوي بالتنور': 'دجاج تنور.webp',
+      'دجاج مسحب مشوي على الفحم': 'مسحب.webp',
+      'نفر كباب لحم': 'نفر كباب لحم.webp',
+      'نفر كباب دجاج': 'نفر كباب دجج.webp',
+      'نفر تكة لحم': 'تكه لحم.webp',
+      'نفر تكة دجاج': 'تكه دجاج.webp',
+      'نفر تكة لحم ملفوف': 'تكه لحم.webp',
+      'نفر معلاك': 'معلاك.webp',
+      'نفر قلب': 'قلب.webp',
+      'عرايس لحم': 'عرايس.webp',
+      'عرايس دجاج': 'عرايس.webp',
+      'نفر اجنحة': 'اجنحة.webp',
+      'ساندويش شاورما لحم': 'شاورما.webp',
+      'ساندويش شاورما دجاج': 'شاورما.webp',
+      'ساندويش فاهيتا دجاج': 'فاهيتا.webp',
+      'ساندويش سكالوب دجاج': 'سكالوب دجاج.webp',
+      'ساندويش شيش طاووق': 'شيش طاووق.webp',
+      'بورك لحم': 'بورك.webp',
+      'كبة حلب': 'كبة حلب.webp',
+      'كبة طرابلسية': 'كبة طرابلسية.webp',
+      'بركر لحم كلاسيك': 'بركر كلاسيك.webp',
+      'بركر لحم بالجبن': 'بركر بل جبن.webp',
+      'بركر لحم بالمشروم': 'بركر لحم بل مشروم.webp',
+      'كنافة جبن': 'كنافه.webp',
+      'كنافة بستاشيو': 'كنافه بستاشيو.webp',
+      'كنافة نوتيلا': 'كنافه شوكلاتة.webp',
+      'كيك': 'كيك.webp',
+      'كيك سان سيباستيان': 'تشيز كيك.webp',
+      'كيك براونيز': 'براونيز.webp',
+      'طبق فواكة': 'فواكه.webp',
+      'طبق فواكة سبشل': 'فواكه.webp',
+      'قهوه تركية': 'قهوه.webp',
+      'قهوه تركية دبل': 'قهوه.webp',
+      'قهوه جكليتية': 'قهوه.webp',
+      'امريكانو كافيه': 'قهوه.webp',
+      'اسبريسو': 'ابو حالوب اسبريسو.webp',
+      'اسبريسو دبل': 'ابو حالوب اسبريسو.webp',
+      'سحلب': 'سحلب.webp',
+      'شاي عراقي': 'جاي.webp',
+      'شاي حليب': 'جاي وحليب.webp',
+      'شاي بالنعناع': 'جاي ونعناع.webp',
+      'شاي بالليمون': 'جاي وليمون.webp',
+      'شوكولا ساخنة': 'هوت تشوكليت.webp',
+      'ايس كابتشينو': 'ايس كابتشينو.webp',
+      'ايس لاتيه': 'ايس لاتيه حالوب.webp',
+      'موهيتو انناس': 'موهيتو انناس.webp',
+      'موهيتو ليمون ونعناع': 'موهيتو ليمون.webp',
+      'موهيتو ببلز': 'موهيتو ببلز.webp',
+      'موهيتو خوخ': 'موهيتو خوخ.webp',
+      'موهيتو جوز هند': 'موهيتو جوز الهند.webp',
+      'موهيتو استوائي': 'موهيتو استوائي.webp',
+      'موهيتو ستروبري بلو': 'موهيتو فراولة.webp',
+      'موهيتو ستروبري': 'موهيتو فراولة.webp',
+      'موهيتو رقي': 'موهيتو ركي.webp',
+      'موهيتو ليمون': 'موهيتو ليمون.webp',
+      'موهيتو كيوي': 'موهيتو كيوي.webp',
+      'موهيتو منغا': 'موهيتو منغا.webp',
+      'بان كيك فواكه': 'بانكيك فواكه.webp',
+      'بان كيك لوتس': 'بانكيك لوتس.webp',
+      'بان كيك اوريو': 'بانكيك اريو.webp',
+      'سموذي برتقال': 'عصير برتقال.webp',
+      'سموذي فراولة': 'عصير فراولة.webp',
+      'سموذي انناس': 'عصير انانس.webp',
+      'سموذي رمان': 'عصير رمان.webp',
+      'سموذي منكا': 'عصير منكا.webp',
+      'سموذي ستروبري بلو': 'عصير فراولة.webp',
+      'ميلك شيك لوتس': 'ميلك شيلك لوتس.webp',
+      'ميلك شيك شوكولا': 'ميلك شيلك نوتيلا شوكلات.webp',
+      'ميلك شيك بستاشيو': 'ميلك شيلك بستاششيو.webp',
+      'ميلك شيك فريز': 'ميلك شيلر فريز.webp',
+      'ميلك شيك جوز هند': 'ميلك شيلك جوز الهند.webp',
+      'كريب مكس': 'كريب مكس عادي.webp',
+      'كريب تربل مكس': 'كريب تربل مكس.webp',
+      'كريب فواكه': 'كريب فواكه.webp',
+      'كريب فوتشيني': 'كريب فوتشيني.webp',
+      'كريب مارشميلو': 'كريب مارشميلو.webp',
+      'كريب اوريو': 'كريب اوريو.webp',
+      'كريب لوتس': 'كريب لوتس.webp',
+      'كريب سوشي': 'كريب سوشي.webp',
+      'كريب ايس كريم': 'كريم ايسكريم.webp',
+      'كريب براونيز': 'كريب براونيز.webp',
+      'كريب كندر': 'كريب كندر.webp',
+      'كريب مكسرات': 'كريب مكسرات.webp',
+      'كريب بنانا رول': 'كريب بنانا رول.webp',
+      'ايس كريم 3 بول': 'ايسكريم 3.webp',
+      'ايس كريم توتي فروتي': 'ايسكريم 3.webp',
+      'ايس كريم سبشيل': 'ايسكريم سبيشيل.webp',
+      'عصير برتقال': 'عصير برتقال.webp',
+      'عصير ليمون': 'عصير ليمون.webp',
+      'عصير موز': 'عصير موز.webp',
+      'عصير انناس': 'عصير انانس.webp',
+      'عصير فراولة': 'عصير فراولة.webp',
+      'عصير بطيخ': 'عصير بطيخ.webp',
+      'عصير رقي': 'عصير ركي.webp',
+      'عصير ليمون نعناع': 'عصير ليمون.webp',
+      'عصير موز نستلة': 'موز ونستلة.webp',
+      'عصير منكا': 'عصير منكا.webp',
+      'عصير رمان': 'عصير رمان.webp',
+      'عصير افوكادو بالليمون': 'افكادو وليمون.webp',
+      'وافل شوكولا': 'وافل بل شوكلاته.webp',
+      'وافل بلاك': 'وافل بلاك.webp',
+      'وافل كندر': 'وافل كندر.webp',
+      'وافل مكسرات': 'وافل مكسرات.webp',
+      'وافل لوتس': 'وافل لوتس.webp',
+      'وافل اوريو': 'وافل اريو.webp',
+      'وافل فواكه': 'وافل فواكه.webp',
+      'كبدة بدبس الرمان': 'كبدة بدبس الرمان.webp',
+      'بيبسي': 'بيبسي.webp',
+      'سفن اب': 'سفن اب.webp',
+      'لبن بنعناع': 'لبن بنعناع.webp',
+      'ماء': 'ماء.webp',
+      'مشروب طاقة': 'مشروب طاقة.webp',
+      'مكسيكي': 'مكسيكي.webp',
+      'سموذي سكاي': 'سموذي سكاي.webp',
+      'ايس كرمل ميكاتو': 'ايس كرمل ميكاتو.webp',
+      'ايس امريكانو': 'ايس امريكانو.webp',
+      'عصير على بالك': 'عصير على بالك.webp'
+    };
+
+    /* صورة محلية على مستوى القسم كامل (تُستخدم لأي صنف ماكو إله صورة خاصة) */
+    const LOCAL_CAT_IMG = {
+      'chicken': 'دجاج.webp',
+      'cold_starters': 'مقبلات وسط.webp',
+      'mojito': 'موهيتو.webp',
+      'pancakes': 'بانكيك.webp',
+      'sweets': 'كريب.webp',
+      'waffles': 'وافل.webp',
+      'hookah': 'اركيلة.webp'
+    };
+
+    /* الأولوية: صورة الصنف من قاعدة البيانات/الإدارة (المصدر الموثوق) ←
+       ثم خرائط الصور المحلية كاحتياط ← ثم صورة القسم من الإنترنت.
+       هكذا أي تعديل من لوحة الإدارة على صورة الصنف يظهر مباشرة. */
+    function resolveImg(item) {
+      if (!item) return '';
+      const raw = item.img || LOCAL_IMG[item.name] || LOCAL_CAT_IMG[item.cat] || CATEGORY_IMAGES[item.cat] || '';
+      return safeImgUrl(raw);
+    }
+
+    /* حماية: إذا فشلت صورة بالتحميل (محذوفة/معطوبة) نخفيها بهدوء
+       حتى لا تظهر أيقونة صورة مكسورة ولا ينكسر شكل المنيو. */
+    function imgErr(el) {
+      const wrap = el.closest('.ic-img, .m-img-wrap');
+      if (wrap) wrap.remove();
+      else el.style.display = 'none';
     }
 
     function rCard(item, delay = 0) {
       const inlineBadge = bdgInline(item.badge);
+      const imgUrl = resolveImg(item);
+      const imgHtml = imgUrl
+        ? `<div class="ic-img"><img src="${attr(imgUrl)}" alt="${attr(item.name)}" loading="lazy" onerror="imgErr(this)"></div>`
+        : '';
 
-      return `<div class="ic" style="animation-delay:${delay}s; padding-top: 15px;" onclick="openModal('${item.id}')">
+      return `<div class="ic" style="--reveal-delay:${delay}s;" onclick="openModal('${jsArg(item.id)}')">
+        ${imgHtml}
         <div class="ic-body">
           ${inlineBadge}
-          <div class="ic-name">${item.name}</div>
-          <div class="ic-desc">${item.desc || ''}</div>
+          <div class="ic-name">${esc(item.name)}</div>
+          <div class="ic-desc">${esc(item.desc || '')}</div>
           <div class="ic-foot">
-            <span class="ic-price">${item.price.toLocaleString()} د.ع</span>
-            <button class="ic-add" onclick="event.stopPropagation();qadd('${item.id}',this)">
+            <span class="ic-price">${money(item.price)} د.ع</span>
+            <button class="ic-add" onclick="event.stopPropagation();qadd('${jsArg(item.id)}',this)" aria-label="أضف ${attr(item.name)}">
               <i class="ph-bold ph-plus"></i>
             </button>
           </div>
@@ -419,7 +641,7 @@
     /* ── POPULATE ── */
     function populate() {
       CATS.forEach(c => {
-        const el = document.getElementById(c.id + 'G');
+        const el = document.getElementById(safeDomId(c.id) + 'G');
         if (el) {
           if (!el.innerHTML || el.innerHTML.includes('skeleton')) {
             el.innerHTML = Array(3).fill('<div class="ic skeleton" style="height:210px;border-radius:24px;opacity:0.5"></div>').join('');
@@ -444,13 +666,19 @@
 
       // featured slider
       document.getElementById('featS').innerHTML = FEAT.map((f, idx) => {
-        return `<div class="fc" style="background:${f.col}" onclick="openModal('${f.id}')">
+        const featuredItem = getItem(f.id) || f;
+        const featImg = resolveImg(featuredItem);
+        const featMedia = featImg
+          ? `<img src="${attr(featImg)}" class="fc-img" alt="${attr(f.name)}" loading="lazy" onerror="imgErr(this)">`
+          : `<div class="fc-ph"><i class="ph-light ph-fork-knife"></i></div>`;
+        return `<div class="fc" style="background:${attr(f.col)};--feature-delay:${idx * 0.07}s" onclick="openModal('${jsArg(f.id)}')">
+          ${featMedia}
           <div class="fc-body">
-            <div class="fc-name">${f.name}</div>
-            <div class="fc-tag">${f.tag}</div>
+            <div class="fc-name">${esc(f.name)}</div>
+            <div class="fc-tag">${esc(f.tag)}</div>
             <div class="fc-foot">
-              <span class="fc-price">${f.price.toLocaleString()} د.ع</span>
-              <button class="fc-add" onclick="event.stopPropagation();qadd('${f.id}',this)">
+              <span class="fc-price">${money(f.price)} د.ع</span>
+              <button class="fc-add" onclick="event.stopPropagation();qadd('${jsArg(f.id)}',this)">
                 <i class="ph-bold ph-plus"></i>
               </button>
             </div>
@@ -480,22 +708,45 @@
           revealObs.unobserve(e.target);
         }
       });
-    }, { threshold: 0.1 });
+    }, { rootMargin: '0px 0px 160px 0px', threshold: 0.02 });
 
     function initReveal() {
-      document.querySelectorAll('.ic').forEach(el => revealObs.observe(el));
+      document.querySelectorAll('.ic:not(.reveal)').forEach((el, i) => {
+        if (!el.style.getPropertyValue('--reveal-delay')) {
+          el.style.setProperty('--reveal-delay', `${Math.min(i, 10) * 0.035}s`);
+        }
+        revealObs.observe(el);
+      });
     }
 
     /* ── TABS ── */
     let tScroll = false;
+    let browseTimer = null;
+
+    function setActiveSection(id) {
+      document.querySelectorAll('.sec').forEach(s => s.classList.toggle('sec-active', s.id === id));
+    }
+
+    function playBrowseMotion(vp) {
+      if (!vp) return;
+      vp.classList.remove('is-browsing');
+      void vp.offsetWidth;
+      vp.classList.add('is-browsing');
+      clearTimeout(browseTimer);
+      browseTimer = setTimeout(() => vp.classList.remove('is-browsing'), 640);
+    }
     function goTab(id, btn) {
       tScroll = true;
       const sec = document.getElementById(id);
       const vp = document.getElementById('mainVp');
+      if (!sec || !vp) return;
 
       document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
       btn.classList.add('on');
+      btn.dataset.target = id;
       btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      setActiveSection(id);
+      playBrowseMotion(vp);
 
       vp.scrollTo({ left: sec.offsetLeft, behavior: 'smooth' });
       setTimeout(() => tScroll = false, 800);
@@ -505,11 +756,15 @@
       if (tScroll) return;
       entries.forEach(e => {
         if (e.isIntersecting && e.intersectionRatio > 0.5) {
+          const changedSection = !e.target.classList.contains('sec-active');
           const idx = Array.from(document.querySelectorAll('.sec')).indexOf(e.target);
           const tabs = document.querySelectorAll('.tb');
+          setActiveSection(e.target.id);
+          if (changedSection) playBrowseMotion(document.getElementById('mainVp'));
           if (tabs[idx]) {
             tabs.forEach(t => t.classList.remove('on'));
             tabs[idx].classList.add('on');
+            tabs[idx].dataset.target = e.target.id;
             tabs[idx].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
           }
         }
@@ -519,6 +774,7 @@
     setTimeout(() => {
       document.querySelectorAll('.sec').forEach(s => secObs.observe(s));
     }, 500);
+    document.getElementById('home')?.classList.add('sec-active');
 
     /* ── SEARCH ── */
     function doSearch(v) {
@@ -533,7 +789,7 @@
       }
 
       featWrap.style.display = 'none';
-      const res = all().filter(i => i.name.includes(v) || i.desc.includes(v));
+      const res = all().filter(i => String(i.name || '').includes(v) || String(i.desc || '').includes(v));
       popG.innerHTML = res.length
         ? res.map((it, i) => rCard(it, i * .04)).join('')
         : '<p style="color:var(--sub);font-size:14.5px;grid-column:1/-1;padding:40px 0;text-align:center;font-weight:600;">لا توجد نتائج مطابقة 💔</p>';
@@ -548,9 +804,13 @@
       if (!item) return;
       modalItem = item;
 
+      const mImg = resolveImg(item);
+      document.getElementById('mImgW').innerHTML = mImg
+        ? `<div class="m-img-wrap" style="border-radius:18px;overflow:hidden;margin-bottom:16px;"><img src="${attr(mImg)}" class="m-img" alt="${attr(item.name)}" loading="lazy" onerror="imgErr(this)"></div>`
+        : '';
 
       document.getElementById('mName').textContent = item.name;
-      document.getElementById('mPrice').textContent = item.price.toLocaleString() + ' د.ع';
+      document.getElementById('mPrice').textContent = money(item.price) + ' د.ع';
       document.getElementById('mDesc').textContent = item.desc || '';
       document.getElementById('mov').classList.add('on');
     }
@@ -589,7 +849,7 @@
     function addToCart(id, skipSuggest = false) {
       const item = getItem(id);
       if (!item) return;
-      const ex = cart.find(c => c.id === id);
+      const ex = cart.find(c => String(c.id) === String(id));
       if (ex) ex.qty++;
       else cart.push({ ...item, qty: 1 });
       updateUI();
@@ -598,10 +858,10 @@
     }
 
     function removeFromCart(id) {
-      const ex = cart.find(c => c.id === id);
+      const ex = cart.find(c => String(c.id) === String(id));
       if (ex) {
         if (ex.qty > 1) ex.qty--;
-        else cart = cart.filter(c => c.id !== id);
+        else cart = cart.filter(c => String(c.id) !== String(id));
       }
       updateUI();
     }
@@ -634,7 +894,7 @@
 
       let catKey = null;
       for (const k in DB) {
-        if (DB[k].find(i => i.id === addedItem.id)) { catKey = k; break; }
+        if (DB[k].find(i => String(i.id) === String(addedItem.id))) { catKey = k; break; }
       }
       if (!catKey || !SMART_COPIES[catKey]) return;
 
@@ -643,27 +903,28 @@
       const suggestions = DB[targetCat] || [];
       if (!suggestions.length) return;
 
-      const hasSuggestedType = cart.some(cItem => suggestions.some(s => s.id === cItem.id));
+      const hasSuggestedType = cart.some(cItem => suggestions.some(s => String(s.id) === String(cItem.id)));
       if (hasSuggestedType) return;
 
       const topSuggests = suggestions.slice(0, 4);
 
-      document.getElementById('smTitle').innerHTML = 'كمل وجبتك ✨';
-      document.getElementById('smCopy').innerHTML = conf.msg;
+      document.getElementById('smTitle').textContent = 'كمل وجبتك ✨';
+      document.getElementById('smCopy').textContent = conf.msg;
 
       const cardsHtml = topSuggests.map((s, idx) => {
-        const imgHtml = s.img
-          ? `<img src="${s.img}" class="sm-card-img" alt="${s.name}" loading="lazy">`
+        const sImg = resolveImg(s);
+        const imgHtml = sImg
+          ? `<img src="${attr(sImg)}" class="sm-card-img" alt="${attr(s.name)}" loading="lazy" onerror="imgErr(this)">`
           : `<div class="sm-card-ph"><i class="ph-light ph-fork-knife"></i></div>`;
         return `
           <div class="sm-card" style="animation-delay:${idx * 0.08}s">
             ${imgHtml}
             <div class="sm-card-body">
               <div>
-                <div class="sm-card-name">${s.name}</div>
-                <div class="sm-card-price">${s.price.toLocaleString()} د.ع</div>
+                <div class="sm-card-name">${esc(s.name)}</div>
+                <div class="sm-card-price">${money(s.price)} د.ع</div>
               </div>
-              <button class="sm-card-add" onclick="addSmartItem(${s.id})">
+              <button class="sm-card-add" onclick="addSmartItem('${jsArg(s.id)}')">
                 <i class="ph-bold ph-plus"></i> أضف للسلة
               </button>
             </div>
@@ -685,7 +946,7 @@
 
 
     function changeQty(id, d) {
-      const ex = cart.find(c => c.id === id);
+      const ex = cart.find(c => String(c.id) === String(id));
       if (!ex) return;
       ex.qty += d;
       if (ex.qty <= 0) { removeFromCart(id); return; }
@@ -706,7 +967,7 @@
       const fb = document.getElementById('fbar');
       fb.classList.toggle('on', n > 0);
       document.getElementById('fbCnt').textContent = n;
-      document.getElementById('fbPrice').textContent = t.toLocaleString() + ' د.ع';
+      document.getElementById('fbPrice').textContent = money(t) + ' د.ع';
     }
 
     /* ── DRAWER ── */
@@ -726,22 +987,22 @@
         foot.style.display = 'none'; return;
       }
       foot.style.display = 'block';
-      document.getElementById('dCount').textContent = totalN() + ' صنف';
-      document.getElementById('dTotal').textContent = totalP().toLocaleString() + ' د.ع';
+      document.getElementById('dCount').textContent = money(totalN()) + ' صنف';
+      document.getElementById('dTotal').textContent = money(totalP()) + ' د.ع';
       body.innerHTML = cart.map((c, i) => {
         return `<div class="citem" style="animation-delay:${i * 0.05}s">
           <div class="citem-img"><i class="ph-light ph-fork-knife"></i></div>
           <div class="citem-info">
-            <div class="citem-name">${c.name}</div>
-            <div class="citem-sub">${(c.price * c.qty).toLocaleString()} د.ع</div>
-            <div class="citem-unit">${c.price.toLocaleString()} د.ع × ${c.qty}</div>
+            <div class="citem-name">${esc(c.name)}</div>
+            <div class="citem-sub">${money(c.price * c.qty)} د.ع</div>
+            <div class="citem-unit">${money(c.price)} د.ع × ${money(c.qty)}</div>
           </div>
           <div class="cqty">
-            <button class="qb" onclick="changeQty(${c.id},-1)"><i class="ph-bold ph-minus"></i></button>
-            <span class="qn">${c.qty}</span>
-            <button class="qb" onclick="changeQty(${c.id},1)"><i class="ph-bold ph-plus"></i></button>
+            <button class="qb" onclick="changeQty('${jsArg(c.id)}',-1)"><i class="ph-bold ph-minus"></i></button>
+            <span class="qn">${money(c.qty)}</span>
+            <button class="qb" onclick="changeQty('${jsArg(c.id)}',1)"><i class="ph-bold ph-plus"></i></button>
           </div>
-          <button class="crem" onclick="removeFromCart(${c.id})"><i class="ph-bold ph-trash-simple"></i></button>
+          <button class="crem" onclick="removeFromCart('${jsArg(c.id)}')"><i class="ph-bold ph-trash-simple"></i></button>
         </div>`;
       }).join('');
     }
@@ -754,12 +1015,14 @@
     function closeForm() { document.getElementById('fov').classList.remove('on'); }
     function closeFormOv(e) { if (e.target === document.getElementById('fov')) closeForm(); }
 
+    function toggleBlockDetails(v) {
+      document.getElementById('blockDetails').style.display = v ? 'block' : 'none';
+    }
+
     function updateBranchInfo(v) {
       const addressEl = document.getElementById('branchAddress');
       const branchAddresses = {
-        'حي الجامعة': '📍 مقابل مستشفى الكرخ | 07750090007',
-        'الحارثية': '📍 مقابل صيدلية أم الشيخلي | 07765009009',
-        'الأعظمية': '📍 فرع الأعظمية | 07738500900'
+        'بسماية': '📍 فرع بسماية | 07753203030'
       };
 
       if (branchAddresses[v]) {
@@ -775,17 +1038,24 @@
       const branch = document.getElementById('custBranch').value;
       const area = document.getElementById('custArea').value;
       const name = document.getElementById('custName').value.trim();
+      const block = document.getElementById('custBlock').value;
+      const blockNum = document.getElementById('custBlockNum').value.trim();
+      const building = document.getElementById('custBuilding').value.trim();
+      const floor = document.getElementById('custFloor').value.trim();
+      const apt = document.getElementById('custApt').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
 
       if (!branch) { showToast('يرجى اختيار الفرع!'); return; }
-      if (!area) { showToast('يرجى اختيار المنطقة!'); return; }
       if (!name) { showToast('يرجى إدخال اسمك!'); return; }
+      if (!block) { showToast('يرجى اختيار البلوك!'); return; }
+      if (!blockNum) { showToast('يرجى إدخال رقم البلوك!'); return; }
+      if (!building) { showToast('يرجى إدخال رقم البناية!'); return; }
+      if (!floor) { showToast('يرجى إدخال الطابق!'); return; }
+      if (!apt) { showToast('يرجى إدخال رقم الشقة!'); return; }
       if (!phone) { showToast('يرجى إدخال رقم الهاتف!'); return; }
 
       const branchNumbers = {
-        'حي الجامعة': '9647750090007',
-        'الحارثية': '9647765009009',
-        'الأعظمية': '9647738500900'
+        'بسماية': '9647753203030'
       };
 
       const now = new Date();
@@ -794,21 +1064,30 @@
       h = h % 12 || 12;
       const timeStr = h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
 
-      let msg = `*طلب جديد — مقهى ابو حالوب* 🟢\n`;
-      msg += `📍 *الفرع:* ${branch}\n`;
+      const line = '━━━━━━━━━━━━━━';
+      let msg = `🟢 *مقهى أبو حالوب — طلب جديد*\n`;
+      msg += `${line}\n`;
+      msg += `👤 *الاسم:* ${name}\n`;
+      msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `🏬 *الفرع:* ${branch}\n`;
       msg += `🏙️ *المنطقة:* ${area}\n`;
-      msg += `🙋‍♂️ *من:* ${name}\n`;
-      msg += `📞 *الرقم:* ${phone}\n`;
-      msg += `⏱️ *الوقت:* ${timeStr}\n`;
-      msg += `━━━━━━━━━━━━━━━━━━\n`;
+      msg += `📍 *العنوان:* بلوك ${block} - رقم البلوك ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}\n`;
+      msg += `🕐 *الوقت:* ${timeStr}\n`;
+      msg += `${line}\n`;
+      msg += `🧾 *تفاصيل الطلب:*\n`;
       cart.forEach(c => {
-        msg += `🔸 *${c.qty}×* ${c.name}\n`;
-        msg += `   (${(c.price * c.qty).toLocaleString()} د.ع)\n`;
+        msg += `• ${c.qty}× ${c.name} — ${money(c.price * c.qty)} د.ع\n`;
       });
-      msg += `━━━━━━━━━━━━━━━━━━\n`;
-      msg += `💰 *الإجمالي:* ${totalP().toLocaleString()} د.ع\n`;
+      msg += `${line}\n`;
+      msg += `📦 *عدد الأصناف:* ${money(totalN())}\n`;
+      msg += `💰 *الإجمالي:* ${money(totalP())} د.ع\n`;
+      if (customerLoc) {
+        msg += `${line}\n`;
+        msg += `📍 *موقع الزبون على الخريطة:*\n${customerLoc.link}\n`;
+      }
 
       const resNumber = branchNumbers[branch];
+      if (!resNumber) { showToast('رقم هذا الفرع غير متاح حالياً، يرجى اختيار فرع آخر.'); return; }
       const waUrl = `https://wa.me/${resNumber}?text=${encodeURIComponent(msg)}`;
       cart = []; updateUI(); renderDrawer(); closeForm();
       window.open(waUrl, '_blank');
@@ -817,7 +1096,7 @@
 
     let alertTimer;
     function openAlert(msg) {
-      document.getElementById('paMsg').innerHTML = msg;
+      document.getElementById('paMsg').textContent = msg;
       document.getElementById('aov').classList.add('on');
       clearTimeout(alertTimer);
       alertTimer = setTimeout(closeAlert, 3500);
@@ -831,6 +1110,54 @@
       el.classList.add('on');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => el.classList.remove('on'), 2300);
+    }
+
+    /* ══════════════════════════════
+       CUSTOMER LOCATION (auto-detect)
+       يظهر إشعار مرتب عند فتح المنيو يطلب من الزبون تحديد موقعه،
+       ويُرفق رابط الخريطة تلقائياً مع الطلب على واتساب.
+    ══════════════════════════════ */
+    let customerLoc = null; // { lat, lng, link }
+
+    function showLocAsk() {
+      // لا نُزعج الزبون إذا سبق وحدّد موقعه أو رفض في نفس الجلسة
+      if (sessionStorage.getItem('locAnswered') === 'true') return;
+      if (!('geolocation' in navigator)) return;
+      const el = document.getElementById('locAsk');
+      if (el) setTimeout(() => el.classList.add('on'), 1200);
+    }
+
+    function dismissLocAsk() {
+      const el = document.getElementById('locAsk');
+      if (el) el.classList.remove('on');
+      sessionStorage.setItem('locAnswered', 'true');
+    }
+
+    function requestLocation() {
+      const msgEl = document.getElementById('locAskMsg');
+      const yesBtn = document.querySelector('.locask-yes');
+      if (yesBtn) { yesBtn.disabled = true; yesBtn.textContent = '...جارٍ التحديد'; }
+      if (msgEl) msgEl.textContent = 'يرجى السماح بالوصول للموقع من المتصفح…';
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude.toFixed(6);
+          const lng = pos.coords.longitude.toFixed(6);
+          customerLoc = { lat, lng, link: `https://maps.google.com/?q=${lat},${lng}` };
+          sessionStorage.setItem('locAnswered', 'true');
+          const el = document.getElementById('locAsk');
+          if (el) el.classList.add('done');
+          if (msgEl) msgEl.textContent = '✅ تم تحديد موقعك بنجاح، سيُرفق مع طلبك تلقائياً.';
+          if (yesBtn) { yesBtn.textContent = 'تم ✓'; }
+          showToast('تم تحديد موقعك بنجاح 📍');
+          setTimeout(dismissLocAsk, 1800);
+        },
+        err => {
+          if (yesBtn) { yesBtn.disabled = false; yesBtn.textContent = 'إعادة المحاولة'; }
+          if (msgEl) msgEl.textContent = 'تعذّر تحديد الموقع. يمكنك المتابعة وكتابة منطقتك يدوياً.';
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
     }
 
     /* ── SWIPE TO CLOSE ── */
@@ -869,6 +1196,7 @@
     initSwipe('dov', closeDrawer);
     initSwipe('mov', closeModal);
     initSwipe('fov', closeForm);
+    showLocAsk();
 
     /* ── CACHE CLEAR & SERVICE WORKER ── */
     async function clearAllCaches() {
@@ -884,9 +1212,9 @@
     }
 
     // Force clear once if needed (e.g. after a major fix)
-    if (!localStorage.getItem('nashmi_cache_cleared_v14')) {
+    if (!localStorage.getItem('nashmi_cache_cleared_v32')) {
       clearAllCaches().then(() => {
-        localStorage.setItem('nashmi_cache_cleared_v14', 'true');
+        localStorage.setItem('nashmi_cache_cleared_v32', 'true');
         location.reload();
       });
     }

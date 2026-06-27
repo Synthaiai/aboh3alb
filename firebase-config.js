@@ -45,7 +45,8 @@ const initialData = {
       name: 'سمك مسكوف كيلو',
       desc: 'المسكوف العراقي الأصيل المشوي على الفحم بالطريقة البغدادية التراثية، متبل بتتبيلة أبو حالوب الخاصة. يقدم ساخناً مع الخبز العراقي الحار، والصلصة الحارة والحلوة المميزة، بالإضافة إلى السلطة الطازجة وصحن التمر الفاخر.',
       price: 15000,
-      badge: 'popular'
+      badge: 'popular',
+      img: 'مسكوف.webp'
     },
 
     // 2. دجاج على الفحم
@@ -55,7 +56,8 @@ const initialData = {
       name: 'دجاج مشوي بالتنور',
       desc: 'دجاجة كاملة طازجة متبلة ببهاراتنا الخاصة ومطبوخة ببطء في تنور الطين التقليدي على حطب الحمضيات لنكهة مدخنة رائعة. تقدم مع الرز الفاخر، المرق، الخبز الحار والسلطة.',
       price: 15000,
-      badge: 'popular'
+      badge: 'popular',
+      img: 'دجاج تنور.webp'
     },
     {
       id: 2002,
@@ -79,7 +81,8 @@ const initialData = {
       name: 'نفر كباب لحم',
       desc: 'شياش من لحم الغنم العراقي الفاخر المفروم مع البصل والبهارات الخاصة، مشوي على الفحم ومقدم مع الخبز الحار والسلطة الطازجة.',
       price: 15000,
-      badge: 'popular'
+      badge: 'popular',
+      img: 'نفر كباب لحم.webp'
     },
     {
       id: 3002,
@@ -166,7 +169,8 @@ const initialData = {
       name: 'بركر لحم بالجبن',
       desc: 'قرص لحم بقري فاخر مع شريحة من جبنة الشيدر الذائبة، الخس، الطماطم والصلصة المميزة.',
       price: 6500,
-      badge: 'new'
+      badge: 'new',
+      img: 'بركر بل جبن.webp'
     },
     {
       id: 4003,
@@ -190,7 +194,8 @@ const initialData = {
       name: 'ساندويش شاورما لحم',
       desc: 'لفافة من شاورما اللحم العراقي المتبل مع الطماطم، البصل، البقدونس وصلصة الطحينية في خبز الصاج العربي.',
       price: 6000,
-      badge: 'popular'
+      badge: 'popular',
+      img: 'شاورما.webp'
     },
     {
       id: 5002,
@@ -386,3 +391,246 @@ const initialData = {
     { id: 21010, cat: 'hookah', name: 'أركيلة نعناع', desc: 'أركيلة فاخرة بنكهة النعناع البارد والصافي المنعش.', price: 6000 }
   ]
 };
+
+// Dynamically assign specific, non-random visual food/drink images matching name keywords:
+if (typeof initialData !== 'undefined' && initialData.items) {
+  const imageMap = {
+    // 1. سمك مسكوف
+    'سمك مسكوف': 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=80',
+    
+    // 2. دجاج على الفحم
+    'نص دجاج': 'https://images.unsplash.com/photo-1610057099443-fde8c4d50f91?w=600&q=80',
+    'دجاج مشوي': 'https://images.unsplash.com/photo-1598103442097-8b743e2b95c6?w=600&q=80',
+    'مسحب': 'https://images.unsplash.com/photo-1606755962773-d324e0a13086?w=600&q=80',
+    
+    // 3. المشويات
+    'كباب لحم': 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80',
+    'كباب دجاج': 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=600&q=80',
+    'تكة لحم ملفوف': 'https://images.unsplash.com/photo-1603360946369-dc9bb6258143?w=600&q=80',
+    'تكة لحم': 'https://images.unsplash.com/photo-1544025162-d76694265947?w=600&q=80',
+    'تكة دجاج': 'https://images.unsplash.com/photo-1532550907401-a500c9a57435?w=600&q=80',
+    'كباب باذنجان': 'https://images.unsplash.com/photo-1603073163308-9654c3fb70b5?w=600&q=80',
+    'معلاك': 'https://images.unsplash.com/photo-1532636875304-0c8fe119aff9?w=600&q=80',
+    'قلب': 'https://images.unsplash.com/photo-1532636875304-0c8fe119aff9?w=600&q=80',
+    'عرايس': 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=600&q=80',
+    'اجنحة': 'https://images.unsplash.com/photo-1567620832903-9fc6debc209f?w=600&q=80',
+    
+    // 4. البركر
+    'بركر لحم بالجبن': 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=600&q=80',
+    'بركر لحم بالشاورما': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+    'بركر لحم بالمشروم': 'https://images.unsplash.com/photo-1586190848861-99aa4a171e90?w=600&q=80',
+    'بركر لحم كلاسيك': 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+    
+    // 5. ساندويش
+    'ساندويش شاورما لحم': 'https://images.unsplash.com/photo-1626700051175-6518c4793f4f?w=600&q=80',
+    'ساندويش شاورما دجاج': 'https://images.unsplash.com/photo-1561758033-d89a9ad46330?w=600&q=80',
+    'ساندويش فاهيتا دجاج': 'https://images.unsplash.com/photo-1529042410759-befb1204b468?w=600&q=80',
+    'ساندويش سكالوب دجاج': 'https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=600&q=80',
+    'ساندويش شيش طاووق': 'https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?w=600&q=80',
+
+    // 6. المقبلات الباردة
+    'حمص بطحينة': 'https://images.unsplash.com/photo-1600891964599-f61ba0e24092?w=600&q=80',
+    'حمص باللحمة': 'https://images.unsplash.com/photo-1577906096429-f77df7f3f26c?w=600&q=80',
+    'باذنجانية': 'https://images.unsplash.com/photo-1592417817098-8f3d6eb19675?w=600&q=80',
+    'جاجيك': 'https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?w=600&q=80',
+    'سلطة روسية': 'https://images.unsplash.com/photo-1607532941433-304659e8198a?w=600&q=80',
+    'تبولة': 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=600&q=80',
+    'سلطة سيزر': 'https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=600&q=80',
+    'سلطة فتوش': 'https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=600&q=80',
+    'بابا غنوج': 'https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=600&q=80',
+    'اورديف': 'https://images.unsplash.com/photo-1541532713592-79a0317b6b77?w=600&q=80',
+
+    // 7. المقبلات الحارة
+    'بورك لحم': 'https://images.unsplash.com/photo-1608897013039-887f21d8c804?w=600&q=80',
+    'كبة حلب': 'https://images.unsplash.com/photo-1547058881-aa0edd92aab3?w=600&q=80',
+    'كبة طرابلسية': 'https://images.unsplash.com/photo-1547058881-aa0edd92aab3?w=600&q=80',
+    'كبدة بدبس الرمان': 'https://images.unsplash.com/photo-1534790566985-aae57c6b51c9?w=600&q=80',
+    'بطاطا بالجبن': 'https://images.unsplash.com/photo-1585109649139-366815a0d713?w=600&q=80',
+    'بطاطا': 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?w=600&q=80',
+
+    // 8. مشروبات غازية
+    'بيبسي': 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?w=600&q=80',
+    'سفن اب': 'https://images.unsplash.com/photo-1625772291427-39f585a06a6c?w=600&q=80',
+    'ميرندا': 'https://images.unsplash.com/photo-1624517452488-04869289c4ca?w=600&q=80',
+    'لبن بنعناع': 'https://images.unsplash.com/photo-1571153634218-05187cfb04c8?w=600&q=80',
+    'ماء': 'https://images.unsplash.com/photo-1548839140-29a849155be0?w=600&q=80',
+
+    // 9. طاقة
+    'مشروب طاقة': 'https://images.unsplash.com/photo-1622543953490-0b70039a2b19?w=600&q=80',
+    'مكسيكي': 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+
+    // 10. فواكة كيك كنافة
+    'كنافة جبن': 'https://images.unsplash.com/photo-1519869325930-281384150729?w=600&q=80',
+    'كنافة بستاشيو': 'https://images.unsplash.com/photo-1551024601-bec78aea704b?w=600&q=80',
+    'كنافة نوتيلا': 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&q=80',
+    'كيك سان سيباستيان': 'https://images.unsplash.com/photo-1624308560042-3909fd9881bc?w=600&q=80',
+    'كيك براونيز': 'https://images.unsplash.com/photo-1606313564200-e75d5e30476c?w=600&q=80',
+    'كيك': 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?w=600&q=80',
+    'طبق فواكة سبشل': 'https://images.unsplash.com/photo-1519996521430-02b798c1d881?w=600&q=80',
+    'طبق فواكة': 'https://images.unsplash.com/photo-1519996521430-02b798c1d881?w=600&q=80',
+
+    // 11. موهيتو (Unique matching)
+    'موهيتو على بالك': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+    'موهيتو انناس': 'https://images.unsplash.com/photo-1546171753-97d7676e4602?w=600&q=80',
+    'موهيتو ليمون ونعناع': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+    'موهيتو ببلز': 'https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=600&q=80',
+    'موهيتو خوخ': 'https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=600&q=80',
+    'موهيتو جوز هند': 'https://images.unsplash.com/photo-1546171753-97d7676e4602?w=600&q=80',
+    'موهيتو استوائي': 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&q=80',
+    'موهيتو ستروبري بلو': 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+    'موهيتو رمان': 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=600&q=80',
+    'موهيتو ستروبري': 'https://images.unsplash.com/photo-1518690494297-a07091319236?w=600&q=80',
+    'موهيتو رقي': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&q=80',
+    'موهيتو ليمون': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+    'موهيتو كيوي': 'https://images.unsplash.com/photo-1505252585461-04db1ebb846d?w=600&q=80',
+    'موهيتو منغا': 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600&q=80',
+    'موهيتو': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+
+    // 12. بان كيك
+    'بان كيك مكس': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+    'بان كيك فواكه': 'https://images.unsplash.com/photo-1528207776546-365bb710ee93?w=600&q=80',
+    'بان كيك لوتس': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+    'بان كيك اوريو': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+    'بان كيك': 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?w=600&q=80',
+
+    // 13. سموذي
+    'سموذي برتقال': 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=600&q=80',
+    'سموذي فراولة': 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=600&q=80',
+    'سموذي انناس': 'https://images.unsplash.com/photo-1628557045039-4786729b5c23?w=600&q=80',
+    'سموذي رمان': 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=600&q=80',
+    'سموذي سكاي': 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=80',
+    'سموذي منكا': 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600&q=80',
+    'سموذي ستروبري بلو': 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=80',
+    'سموذي': 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=600&q=80',
+
+    // 14. المشروبات الساخنة
+    'قهوه تركية دبل': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80',
+    'قهوه تركية': 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80',
+    'قهوه جكليتية': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80',
+    'اسبريسو دبل': 'https://images.unsplash.com/photo-1510707572775-d567d3bb4752?w=600&q=80',
+    'اسبريسو': 'https://images.unsplash.com/photo-1510707572775-d567d3bb4752?w=600&q=80',
+    'نسكافيه': 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80',
+    'كابتشينو': 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?w=600&q=80',
+    'كافية لاتيه': 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&q=80',
+    'شوكولا ساخنة': 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?w=600&q=80',
+    'امريكانو كافيه': 'https://images.unsplash.com/photo-1510707572775-d567d3bb4752?w=600&q=80',
+    'سحلب': 'https://images.unsplash.com/photo-1542542104-e51c89078b66?w=600&q=80',
+    'شاي بالنعناع': 'https://images.unsplash.com/photo-1627435601361-ec25f5b1d0e5?w=600&q=80',
+    'شاي بالليمون': 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&q=80',
+    'شاي عراقي': 'https://images.unsplash.com/photo-1594631252845-29fc45898d6f?w=600&q=80',
+    'شاي حليب': 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?w=600&q=80',
+    'شاي': 'https://images.unsplash.com/photo-1594631252845-29fc45898d6f?w=600&q=80',
+
+    // 15. ميلك شيك
+    'ميلك شيك اوريو': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'ميلك شيك لوتس': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'ميلك شيك شوكولا': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'ميلك شيك بستاشيو': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'ميلك شيك فريز': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'ميلك شيك جوز هند': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+
+    // 16. الحلويات
+    'كريب مكس': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب تربل مكس': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب فواكه': 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80',
+    'كريب فوتشيني': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب مارشميلو': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب اوريو': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب لوتس': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب سوشي': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب ايس كريم': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب بستاشيو': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب براونيز': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب كندر': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب مكسرات': 'https://images.unsplash.com/photo-1519676867240-f03562e64548?w=600&q=80',
+    'كريب بنانا رول': 'https://images.unsplash.com/photo-1565958011703-44f9829ba187?w=600&q=80',
+
+    // 17. ايس كوفي
+    'ايس كرمل ميكاتو': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+    'ايس كابتشينو': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+    'ايس لاتيه': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+    'ايس امريكانو': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+    'قهوة مثلجة': 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=600&q=80',
+
+    // 18. ايس كريم
+    'ايس كريم توتي فروتي': 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&q=80',
+    'ايس كريم سبشيل': 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=600&q=80',
+    'ايس كريم 3 بول': 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=600&q=80',
+
+    // 19. العصائر
+    'عصير ليمون نعناع': 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+    'عصير موز نستلة': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'عصير افوكادو بالليمون': 'https://images.unsplash.com/photo-1505253181230-658a69b2d550?w=600&q=80',
+    'عصير برتقال': 'https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=600&q=80',
+    'عصير ليمون': 'https://images.unsplash.com/photo-1523362628745-0c100150b504?w=600&q=80',
+    'عصير موز': 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+    'عصير انناس': 'https://images.unsplash.com/photo-1628557045039-4786729b5c23?w=600&q=80',
+    'عصير فراولة': 'https://images.unsplash.com/photo-1553530666-ba11a7da3888?w=600&q=80',
+    'عصير بطيخ': 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+    'عصير رقي': 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=600&q=80',
+    'عصير منكا': 'https://images.unsplash.com/photo-1537640538966-79f369143f8f?w=600&q=80',
+    'عصير رمان': 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=600&q=80',
+    'عصير مكس فروت': 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&q=80',
+    'عصير على بالك': 'https://images.unsplash.com/photo-1497534446932-c925b458314e?w=600&q=80',
+
+    // 20. وافل
+    'وافل مكس': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل شوكولا': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل بلاك': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل كندر': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل مكسرات': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل لوتس': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل اوريو': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+    'وافل فواكه': 'https://images.unsplash.com/photo-1562376502-6f769499c886?w=600&q=80',
+
+    // 21. الأراكيل
+    'أركيلة': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80',
+    'اركيلة': 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'
+  };
+
+  initialData.items.forEach(it => {
+    if (!it.img) {
+      // 1. Exact match on name
+      if (imageMap[it.name]) {
+        it.img = imageMap[it.name];
+      } else {
+        // 2. Keyword containment, checking longer keywords first to prevent greedy matching
+        const sortedKeywords = Object.keys(imageMap).sort((a, b) => b.length - a.length);
+        for (const keyword of sortedKeywords) {
+          if (it.name.includes(keyword)) {
+            it.img = imageMap[keyword];
+            break;
+          }
+        }
+      }
+      // 3. Fallbacks if still no image
+      if (!it.img) {
+        const catMap = {
+          masgouf: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=80',
+          chicken: 'https://images.unsplash.com/photo-1598103442097-8b743e2b95c6?w=600&q=80',
+          grills: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80',
+          burgers: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
+          sandwiches: 'https://images.unsplash.com/photo-1626700051175-6518c4793f4f?w=600&q=80',
+          cold_starters: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=80',
+          hot_starters: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=80',
+          soft_drinks: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+          energy_drinks: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
+          fruits_cakes: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+          mojito: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+          pancakes: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+          smoothies: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+          hot_drinks: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&q=80',
+          milkshake: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+          sweets: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+          ice_coffee: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+          ice_cream: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
+          juices: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
+          waffles: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
+          hookah: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'
+        };
+        it.img = catMap[it.cat] || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=600&q=80';
+      }
+    }
+  });
+}
+
