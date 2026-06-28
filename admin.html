@@ -578,8 +578,9 @@
                         <input type="text" id="mealName" required placeholder="مثلاً: شاورما لحم دبل">
                     </div>
                     <div class="field">
-                        <label>سعر الوجبة (د.ع)</label>
-                        <input type="number" id="mealPrice" required placeholder="مثلاً: 5000">
+                        <label>سعر الوجبة (بالألف العراقي)</label>
+                        <input type="number" id="mealPrice" required step="0.25" min="0" inputmode="decimal" placeholder="مثلاً: 6  ←  يعني 6,000" oninput="updatePricePreview()">
+                        <div class="img-hint" id="pricePreview" style="margin-top:8px;">اكتب الرقم بالألف فقط. مثال: <b>6</b> = 6,000 د.ع — <b>6.5</b> = 6,500 د.ع</div>
                     </div>
                     <div class="field">
                         <label>وصف الوجبة (اختياري)</label>
@@ -844,12 +845,18 @@
             'juices','mojito','smoothies','milkshake','soft_drinks','energy_drinks',
             'hookah'
         ];
+        // رتبة القسم: نحترم ترتيب المدير (order) إن وُجد، وإلا الترتيب الافتراضي
+        function catRank(c) {
+            if (c && typeof c.order === 'number' && Number.isFinite(c.order)) return c.order;
+            const i = CAT_ORDER.indexOf(c && c.id);
+            return i === -1 ? CAT_ORDER.length + 100 : i;
+        }
         function sortCats(cats) {
             return cats.slice().sort((a, b) => {
-                let ia = CAT_ORDER.indexOf(a.id), ib = CAT_ORDER.indexOf(b.id);
-                if (ia === -1) ia = CAT_ORDER.length;
-                if (ib === -1) ib = CAT_ORDER.length;
-                return ia - ib;
+                const ra = catRank(a), rb = catRank(b);
+                if (ra !== rb) return ra - rb;
+                const ia = CAT_ORDER.indexOf(a.id), ib = CAT_ORDER.indexOf(b.id);
+                return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
             });
         }
         function esc(v) {
@@ -878,6 +885,21 @@
         function money(v) {
             const n = Number(v);
             return Number.isFinite(n) ? n.toLocaleString() : '0';
+        }
+
+        /* ── السعر يُكتب بالألف العراقي ── اكتب 6 → يُحفظ 6000، و 6.5 → 6500 */
+        const PRICE_UNIT = 1000;
+        function updatePricePreview() {
+            const el = document.getElementById('pricePreview');
+            if (!el) return;
+            const raw = document.getElementById('mealPrice').value;
+            const num = parseFloat(raw);
+            if (raw === '' || !Number.isFinite(num) || num < 0) {
+                el.innerHTML = 'اكتب الرقم بالألف فقط. مثال: <b>6</b> = 6,000 د.ع — <b>6.5</b> = 6,500 د.ع';
+                return;
+            }
+            const full = Math.round(num * PRICE_UNIT);
+            el.innerHTML = 'السعر النهائي: <b style="color:var(--red)">' + full.toLocaleString() + ' د.ع</b>';
         }
 
         /* ── اختيار صورة الوجبة من الجهاز + ضغطها تلقائياً ── */
@@ -978,10 +1000,27 @@
             
             // Suggest ID based on name (simple slug)
             const id = 'cat_' + Date.now();
-            
-            db.child('categories').child(id).set({ id, name }).then(() => {
+            // القسم الجديد يأخذ ترتيباً في النهاية ويمكن تحريكه لاحقاً
+            const order = CATS.length ? Math.max(...CATS.map(catRank)) + 1 : 0;
+
+            db.child('categories').child(id).set({ id, name, order }).then(() => {
                 document.getElementById('newCatName').value = '';
             });
+        }
+
+        // تحريك القسم لأعلى/أسفل ثم تثبيت ترتيب صريح لكل الأقسام
+        function moveCategory(id, dir) {
+            const ordered = sortCats(CATS);
+            const idx = ordered.findIndex(c => c.id === id);
+            if (idx === -1) return;
+            const swap = idx + dir;
+            if (swap < 0 || swap >= ordered.length) return;
+            const tmp = ordered[idx];
+            ordered[idx] = ordered[swap];
+            ordered[swap] = tmp;
+            const updates = {};
+            ordered.forEach((c, i) => { updates[c.id + '/order'] = i; });
+            db.child('categories').update(updates);
         }
 
         function deleteCategory(id) {
@@ -1005,12 +1044,20 @@
                 container.innerHTML = '<p style="text-align:center; color:#999;">لا توجد أقسام مضافة بعد</p>';
                 return;
             }
-            container.innerHTML = CATS.map(c => `
-                <div style="display:flex; align-items:center; justify-content:space-between; padding:10px; border-bottom:1px solid #f5f5f5;">
-                    <span style="font-weight:700;">${esc(c.name)}</span>
-                    <button class="act-btn btn-del" onclick="deleteCategory('${jsArg(c.id)}')"><i class="ph-bold ph-trash"></i></button>
-                </div>
-            `).join('');
+            const ordered = sortCats(CATS);
+            container.innerHTML = ordered.map((c, i, arr) => {
+                const upStyle = i === 0 ? 'opacity:.3; pointer-events:none;' : '';
+                const downStyle = i === arr.length - 1 ? 'opacity:.3; pointer-events:none;' : '';
+                return `
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; padding:10px; border-bottom:1px solid #f5f5f5;">
+                    <span style="font-weight:700; flex:1;">${esc(c.name)}</span>
+                    <div style="display:flex; gap:6px;">
+                        <button class="act-btn" style="background:#eef2f7; color:#475569; ${upStyle}" title="تحريك لأعلى" onclick="moveCategory('${jsArg(c.id)}', -1)"><i class="ph-bold ph-arrow-up"></i></button>
+                        <button class="act-btn" style="background:#eef2f7; color:#475569; ${downStyle}" title="تحريك لأسفل" onclick="moveCategory('${jsArg(c.id)}', 1)"><i class="ph-bold ph-arrow-down"></i></button>
+                        <button class="act-btn btn-del" title="حذف" onclick="deleteCategory('${jsArg(c.id)}')"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
         }
 
         function updateCatDropdown() {
@@ -1124,6 +1171,7 @@
                 document.getElementById('mealId').value = '';
                 document.getElementById('mealDesc').value = '';
                 clearImg();
+                updatePricePreview();
                 document.getElementById('modalTitle').innerText = 'إضافة وجبة جديدة';
             }
         }
@@ -1142,7 +1190,9 @@
                     document.getElementById('mealCat').value = it.cat;
                     document.getElementById('mealName').value = it.name;
                     document.getElementById('mealDesc').value = it.desc || '';
-                    document.getElementById('mealPrice').value = it.price;
+                    // نعرض السعر بالألف (6000 → 6) ليطابق طريقة الإدخال
+                    document.getElementById('mealPrice').value = (Number(it.price) || 0) / PRICE_UNIT;
+                    updatePricePreview();
                     document.getElementById('mealImgFile').value = '';
                     const existingImg = it.img || '';
                     document.getElementById('mealImg').value = existingImg;
@@ -1162,7 +1212,9 @@
         document.getElementById('mealForm').onsubmit = (e) => {
             e.preventDefault();
             const id = document.getElementById('mealId').value || Date.now().toString();
-            const price = Number.parseInt(document.getElementById('mealPrice').value, 10);
+            // السعر يُدخل بالألف العراقي: 6 → 6000، و 6.5 → 6500
+            const priceUnits = parseFloat(document.getElementById('mealPrice').value);
+            const price = Math.round(priceUnits * PRICE_UNIT);
             const img = safeImgUrl(document.getElementById('mealImg').value);
             if (!Number.isFinite(price) || price < 0) {
                 alert('يرجى إدخال سعر صحيح.');

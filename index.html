@@ -290,12 +290,18 @@
       'juices','mojito','smoothies','milkshake','soft_drinks','energy_drinks',
       'hookah'
     ];
+    // رتبة القسم: نحترم ترتيب المدير (order) إن وُجد، وإلا الترتيب الافتراضي
+    function catRank(c) {
+      if (c && typeof c.order === 'number' && Number.isFinite(c.order)) return c.order;
+      const i = CAT_ORDER.indexOf(c && c.id);
+      return i === -1 ? CAT_ORDER.length + 100 : i;
+    }
     function sortCats(cats) {
       return cats.slice().sort((a, b) => {
-        let ia = CAT_ORDER.indexOf(a.id), ib = CAT_ORDER.indexOf(b.id);
-        if (ia === -1) ia = CAT_ORDER.length;
-        if (ib === -1) ib = CAT_ORDER.length;
-        return ia - ib;
+        const ra = catRank(a), rb = catRank(b);
+        if (ra !== rb) return ra - rb;
+        const ia = CAT_ORDER.indexOf(a.id), ib = CAT_ORDER.indexOf(b.id);
+        return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
       });
     }
 
