@@ -1,13 +1,12 @@
-const CACHE_NAME = 'h3alb-v35';
+const CACHE_NAME = 'h3alb-v38';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './firebase-config.js',
   './logo1.png',
-  './texture.png',
-  'https://fonts.googleapis.com/css2?family=Changa:wght@700;800&family=Readex+Pro:wght@300..700&family=Cairo:wght@400;600;700;800&display=swap',
-  'https://cdn.jsdelivr.net/npm/@fontsource/cascadia-mono@5.0.18/index.css'
+  './texture.webp',
+  'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap'
 ];
 
 // 1. Install - Cache core shell
@@ -33,10 +32,12 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 
-  // Strategy A: Cache First for Fonts & Icons (Static)
-  if (url.hostname.includes('fonts.googleapis.com') || 
-      url.hostname.includes('fonts.gstatic.com') || 
-      url.hostname.includes('unpkg.com')) {
+  // Strategy A: Cache First for Fonts, Icons & Images (Static, rarely change)
+  // الصور تُخزَّن وتُخدَم من الكاش مباشرة بعد أول تحميل → سرعة وسلاسة وتوفير بيانات.
+  if (url.hostname.includes('fonts.googleapis.com') ||
+      url.hostname.includes('fonts.gstatic.com') ||
+      url.hostname.includes('unpkg.com') ||
+      /\.(webp|png|jpe?g|gif|avif|svg)$/i.test(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then(cached => {
         return cached || fetch(e.request).then(res => {

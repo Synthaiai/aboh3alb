@@ -10,17 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
   <link rel="preconnect" href="https://unpkg.com">
-  <link rel="preload"
-    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Changa:wght@700;800&family=Outfit:wght@400;700&display=swap"
-    as="style">
+  <!-- خطوط احتياطية فقط (الأساس خطوط النظام)، طلب واحد بأوزان قليلة -->
   <link
-    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Almarai:wght@300;400;700;800&family=Cairo:wght@300;400;600;700;800&family=Lalezar&family=Aref+Ruqaa:wght@400;700&family=Readex+Pro:wght@200..700&family=Changa:wght@400;700;800&family=Outfit:wght@300;400;500;600;700;800;900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap"
     rel="stylesheet">
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-  <!-- Cascadia Mono via Fontsource CDN: for numbers & prices -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource/cascadia-mono@5.0.18/index.css">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="logo1.png">
   <link rel="apple-touch-icon" href="logo1.png">
@@ -265,6 +258,9 @@
     </div>
   </div>
 
+  <!-- Firebase SDK — في نهاية الصفحة حتى لا يعطّل أول رسم للواجهة -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
     /* ─────────────────────────────────────────────────────
@@ -439,7 +435,11 @@
         } catch (e) { return ''; }
       }
       if (/[\\:]/.test(val) || !/\.(webp|png|jpe?g|gif|avif)$/i.test(val)) return '';
-      return encodeURI(val);
+      // تفادي الترميز المزدوج: إذا كان الاسم مُرمّزاً مسبقاً (%xx) نفكّه ثم نرمّزه مرة واحدة فقط،
+      // وإلا تنكسر الصور التي حُفظت أسماؤها مُرمّزة من لوحة الإدارة/السحابة.
+      let normalized = val;
+      try { normalized = decodeURI(val); } catch (e) { normalized = val; }
+      return encodeURI(normalized);
     }
     function money(v) {
       const n = Number(v);
@@ -642,7 +642,7 @@
       const inlineBadge = bdgInline(item.badge);
       const imgUrl = resolveImg(item);
       const imgHtml = imgUrl
-        ? `<div class="ic-img"><img src="${attr(imgUrl)}" alt="${attr(item.name)}" loading="lazy" onerror="imgErr(this)"></div>`
+        ? `<div class="ic-img"><img src="${attr(imgUrl)}" alt="${attr(item.name)}" loading="lazy" decoding="async" onerror="imgErr(this)"></div>`
         : '';
 
       return `<div class="ic" style="--reveal-delay:${delay}s;" onclick="openModal('${jsArg(item.id)}')">
@@ -692,7 +692,7 @@
         const featuredItem = getItem(f.id) || f;
         const featImg = resolveImg(featuredItem);
         const featMedia = featImg
-          ? `<img src="${attr(featImg)}" class="fc-img" alt="${attr(f.name)}" loading="lazy" onerror="imgErr(this)">`
+          ? `<img src="${attr(featImg)}" class="fc-img" alt="${attr(f.name)}" loading="lazy" decoding="async" onerror="imgErr(this)">`
           : `<div class="fc-ph"><i class="ph-light ph-fork-knife"></i></div>`;
         return `<div class="fc" style="background:${attr(f.col)};--feature-delay:${idx * 0.07}s" onclick="openModal('${jsArg(f.id)}')">
           ${featMedia}
@@ -708,6 +708,13 @@
           </div>
         </div>`;
       }).join('');
+
+      // تثبيت بطاقات المميزات بعد انتهاء أنميشن ظهورها (نفس إصلاح الهوفر)
+      document.querySelectorAll('#featS .fc').forEach(el => {
+        const settle = () => el.classList.add('is-shown');
+        el.addEventListener('animationend', settle, { once: true });
+        setTimeout(settle, 1500);
+      });
 
       // dots
       document.getElementById('dots').innerHTML =
@@ -727,8 +734,13 @@
     const revealObs = new IntersectionObserver((entries) => {
       entries.forEach(e => {
         if (e.isIntersecting) {
-          e.target.classList.add('reveal');
-          revealObs.unobserve(e.target);
+          const t = e.target;
+          t.classList.add('reveal');
+          // بعد انتهاء أنميشن الظهور نثبّت البطاقة حتى لا يُعاد تشغيله عند الهوفر
+          const settle = () => t.classList.add('is-revealed');
+          t.addEventListener('animationend', settle, { once: true });
+          setTimeout(settle, 1500);
+          revealObs.unobserve(t);
         }
       });
     }, { rootMargin: '0px 0px 160px 0px', threshold: 0.02 });
@@ -829,7 +841,7 @@
 
       const mImg = resolveImg(item);
       document.getElementById('mImgW').innerHTML = mImg
-        ? `<div class="m-img-wrap" style="border-radius:18px;overflow:hidden;margin-bottom:16px;"><img src="${attr(mImg)}" class="m-img" alt="${attr(item.name)}" loading="lazy" onerror="imgErr(this)"></div>`
+        ? `<div class="m-img-wrap" style="border-radius:18px;overflow:hidden;margin-bottom:16px;"><img src="${attr(mImg)}" class="m-img" alt="${attr(item.name)}" loading="lazy" decoding="async" onerror="imgErr(this)"></div>`
         : '';
 
       document.getElementById('mName').textContent = item.name;
@@ -937,7 +949,7 @@
       const cardsHtml = topSuggests.map((s, idx) => {
         const sImg = resolveImg(s);
         const imgHtml = sImg
-          ? `<img src="${attr(sImg)}" class="sm-card-img" alt="${attr(s.name)}" loading="lazy" onerror="imgErr(this)">`
+          ? `<img src="${attr(sImg)}" class="sm-card-img" alt="${attr(s.name)}" loading="lazy" decoding="async" onerror="imgErr(this)">`
           : `<div class="sm-card-ph"><i class="ph-light ph-fork-knife"></i></div>`;
         return `
           <div class="sm-card" style="animation-delay:${idx * 0.08}s">
