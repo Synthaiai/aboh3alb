@@ -639,26 +639,10 @@
 
     <script src="firebase-config.js"></script>
     <script>
-        /* ── إعدادات الحماية (PBKDF2 بطبقتين) ──
-           كلمة المرور الحقيقية لا تُخزَّن إطلاقاً.
-           التحقق الحالي يشتق مفتاحاً أولياً متوافقاً مع كلمة المرور القديمة،
-           ثم يمرره إلى طبقة تقوية SHA-512 بملح مستقل وتكرارات أعلى.
-           هذا ليس "تشفيراً قابلاً للفك"؛ هو هاش بطيء غير عكسي لتصعيب التخمين. */
-        const AUTH = {
-            legacy: {
-                salt: 'da768118ae139cf726b7e8d0f927ea8c',
-                iter: 310000,
-                bits: 256,
-                hashAlg: 'SHA-256'
-            },
-            harden: {
-                salt: '0e6543e8186320a530a0efe1703873254ecb378112d8ebb0ba67d7b27de67592',
-                iter: 650000,
-                bits: 512,
-                hashAlg: 'SHA-512',
-                hash: '2527e583a9971ab4e3485523b1519cd96d5cc99902242566d66c562b83ede684cac7feee180423a80e9c9a1c3038734739000001992e08d5c30c8779ae737c1a'
-            }
-        };
+        /* ── المصادقة عبر Firebase Authentication ──
+           كلمة المرور لا تُخزَّن ولا تُشفَّر داخل الكود إطلاقاً.
+           يتم التحقق منها على خوادم Firebase (تخزين آمن بخوارزمية scrypt)،
+           فلا يمكن لأي شخص — ولو كان مبرمجاً يقرأ الكود — استخراج كلمة المرور. */
         /* ── بريد حساب المدير في Firebase Authentication ──
            أنشئ هذا الحساب من Firebase Console (Authentication ← Users ← Add user)
            بنفس هذا البريد وكلمة مرور قوية. المدير يدخل بكلمة المرور فقط. */
@@ -686,41 +670,6 @@
             const min = Math.ceil(ms / 60000);
             const h = Math.floor(min / 60), m = min % 60;
             return h > 0 ? `${h} ساعة و ${m} دقيقة` : `${m} دقيقة`;
-        }
-
-        function hexToBytes(hex) {
-            if (!hex || hex.length % 2 !== 0) throw new Error('Invalid hex salt');
-            return Uint8Array.from(hex.match(/../g).map(h => parseInt(h, 16)));
-        }
-
-        function bytesToHex(buffer) {
-            return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        async function pbkdf2Hex(input, cfg) {
-            const enc  = new TextEncoder();
-            const km = await crypto.subtle.importKey('raw', enc.encode(input), { name: 'PBKDF2' }, false, ['deriveBits']);
-            const bits = await crypto.subtle.deriveBits({
-                name: 'PBKDF2',
-                salt: hexToBytes(cfg.salt),
-                iterations: cfg.iter,
-                hash: cfg.hashAlg
-            }, km, cfg.bits);
-            return bytesToHex(bits);
-        }
-
-        // طبقة توافق ثم طبقة تقوية. كلمة المرور الحالية تبقى نفسها.
-        async function derive(pw) {
-            const legacyKey = await pbkdf2Hex(pw, AUTH.legacy);
-            return pbkdf2Hex(`h3alb-admin-v2:${legacyKey}`, AUTH.harden);
-        }
-
-        // مقارنة ثابتة الزمن (تمنع تسريب المعلومات عبر فرق التوقيت)
-        function safeEqual(a = '', b = '') {
-            const max = Math.max(a.length, b.length);
-            let diff = a.length ^ b.length;
-            for (let i = 0; i < max; i++) diff |= (a.charCodeAt(i) || 0) ^ (b.charCodeAt(i) || 0);
-            return diff === 0;
         }
 
         // يطبّق حالة القفل على الواجهة (يُستدعى عند التحميل وبعد كل محاولة)

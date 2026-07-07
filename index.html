@@ -10,6 +10,9 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
   <link rel="preconnect" href="https://unpkg.com">
+  <!-- تسريع أول اتصال بقاعدة بيانات فايربيس ليصل المنيو أسرع -->
+  <link rel="preconnect" href="https://abo-h3alb-default-rtdb.firebaseio.com" crossorigin>
+  <link rel="dns-prefetch" href="https://abo-h3alb-default-rtdb.firebaseio.com">
   <!-- خطوط احتياطية فقط (الأساس خطوط النظام)، طلب واحد بأوزان قليلة -->
   <link
     href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap"
@@ -29,7 +32,7 @@
   <header class="hdr">
     <div class="hdr-brand">
       <div class="hdr-logo-wrap">
-        <img src="logo1.png" class="hdr-logo-img" alt="أبو حالوب">
+        <img src="logo1.png" class="hdr-logo-img" alt="أبو حالوب" fetchpriority="high" decoding="async" width="52" height="52">
       </div>
       <h1 class="hdr-title-ar">مقهى أبو حالوب</h1>
       <h2 class="hdr-title-en">Abo Haloub Cafe</h2>
@@ -111,6 +114,10 @@
         <div class="d-row">
           <span class="d-row-lbl">الضريبة</span>
           <span class="d-row-val">مشمولة</span>
+        </div>
+        <div class="d-row">
+          <span class="d-row-lbl">التوصيل <small style="opacity:.7">(ملاحظة: ألف دينار توصيل)</small></span>
+          <span class="d-row-val" id="dDelivery">1,000 د.ع</span>
         </div>
         <div class="d-sep"></div>
         <div class="d-total">
@@ -404,6 +411,7 @@
     ];
 
     let cart = [];
+    const DELIVERY_FEE = 1000; // أجور التوصيل: ألف دينار عراقي تُضاف عند الطلب أونلاين
     let modalItem = null;
     let toastTimer;
 
@@ -1023,7 +1031,8 @@
       }
       foot.style.display = 'block';
       document.getElementById('dCount').textContent = money(totalN()) + ' صنف';
-      document.getElementById('dTotal').textContent = money(totalP()) + ' د.ع';
+      document.getElementById('dDelivery').textContent = money(DELIVERY_FEE) + ' د.ع';
+      document.getElementById('dTotal').textContent = money(totalP() + DELIVERY_FEE) + ' د.ع';
       body.innerHTML = cart.map((c, i) => {
         return `<div class="citem" style="animation-delay:${i * 0.05}s">
           <div class="citem-img"><i class="ph-light ph-fork-knife"></i></div>
@@ -1115,7 +1124,9 @@
       });
       msg += `${line}\n`;
       msg += `📦 *عدد الأصناف:* ${money(totalN())}\n`;
-      msg += `💰 *الإجمالي:* ${money(totalP())} د.ع\n`;
+      msg += `🧾 *مجموع الطلب:* ${money(totalP())} د.ع\n`;
+      msg += `🚚 *التوصيل:* ${money(DELIVERY_FEE)} د.ع (ملاحظة: ألف دينار توصيل)\n`;
+      msg += `💰 *الإجمالي النهائي:* ${money(totalP() + DELIVERY_FEE)} د.ع\n`;
       if (customerLoc) {
         msg += `${line}\n`;
         msg += `📍 *موقع الزبون على الخريطة:*\n${customerLoc.link}\n`;
@@ -1231,7 +1242,7 @@
     initSwipe('dov', closeDrawer);
     initSwipe('mov', closeModal);
     initSwipe('fov', closeForm);
-    showLocAsk();
+    // تم إيقاف إشعار طلب الموقع عند دخول المستخدم (يظهر فقط عند إكمال الطلب أونلاين)
 
     /* ── CACHE CLEAR & SERVICE WORKER ── */
     async function clearAllCaches() {
