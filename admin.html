@@ -234,6 +234,8 @@
             align-items: center;
             justify-content: center;
             padding: 20px;
+            overflow-y: auto;                 /* السماح بالتمرير لو النافذة أطول من الشاشة */
+            -webkit-overflow-scrolling: touch;
         }
         .modal {
             background: var(--white);
@@ -242,7 +244,17 @@
             border-radius: 30px;
             overflow: hidden;
             box-shadow: 0 30px 60px rgba(0,0,0,0.2);
+            /* عمود مرن + سقف ارتفاع: يبقى زر الحفظ ثابتاً بالأسفل والجسم يتمرّر */
+            display: flex;
+            flex-direction: column;
+            max-height: calc(100dvh - 40px);
+            margin: auto;
         }
+        .modal-hdr { flex-shrink: 0; }
+        .modal-footer { flex-shrink: 0; }
+        /* أي فورم داخل نافذة يصير عموداً مرناً حتى يتمرّر جسمه ويبقى الفوتر ظاهراً */
+        #mealForm, #eventForm { display: flex; flex-direction: column; min-height: 0; flex: 1; overflow: hidden; }
+        .modal-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .modal-hdr {
             padding: 25px;
             background: var(--bg);
@@ -498,6 +510,12 @@
             <button class="btn btn-sync" style="background:#f0fdf4; color:#16a34a; padding:8px 15px;" onclick="openCatModal()">
                 <i class="ph-bold ph-list-plus"></i> إدارة الأقسام
             </button>
+            <button class="btn btn-sync" style="background:#fdf2f8; color:#be185d; padding:8px 15px;" onclick="openEventsModal()">
+                <i class="ph-bold ph-confetti"></i> إدارة الأمسيات
+            </button>
+            <button class="btn btn-sync" style="background:#fffbeb; color:#b45309; padding:8px 15px;" onclick="openHoursModal()">
+                <i class="ph-bold ph-clock"></i> أوقات العمل
+            </button>
             <button class="btn btn-sync" style="background:#f0f9ff; color:#0369a1; padding:8px 15px;" onclick="testFirebase()">
                 <i class="ph-bold ph-plugs-connected"></i> فحص الاتصال
             </button>
@@ -633,6 +651,92 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-sync" style="background:#eee; color:#333; flex:1;" onclick="closeCatModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EVENTS (الأمسيات) MODAL -->
+    <div class="modal-overlay" id="eventsModalOverlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h2 id="eventModalTitle">إدارة الأمسيات</h2>
+                <i class="ph-bold ph-x" style="cursor:pointer" onclick="closeEventsModal()"></i>
+            </div>
+            <form id="eventForm">
+                <div class="modal-body">
+                    <input type="hidden" id="eventId">
+                    <div class="field">
+                        <label>عنوان الأمسية</label>
+                        <input type="text" id="eventName" required placeholder="مثلاً: أمسية العود والقهوة">
+                    </div>
+                    <div class="field">
+                        <label>وصف الأمسية (اختياري)</label>
+                        <textarea id="eventDesc" rows="3" placeholder="مثلاً: كل ليلة خميس الساعة 8 مساءً، عزف حي وأجواء مميزة..."></textarea>
+                    </div>
+                    <div class="field">
+                        <label>صورة الأمسية (اختياري)</label>
+                        <button type="button" class="img-pick-btn" onclick="document.getElementById('eventImgFile').click()">
+                            <i class="ph-bold ph-image-square"></i> اختر صورة من جهازك
+                        </button>
+                        <input type="file" id="eventImgFile" accept="image/*" style="display:none" onchange="handleEventImgFile(this)">
+                        <input type="hidden" id="eventImg">
+                        <div class="preview-box" id="eventImgPreviewWrap" style="display:none; position:relative;">
+                            <img id="eventImgPreview" alt="معاينة صورة الأمسية">
+                            <button type="button" class="img-remove-btn" onclick="clearEventImg()" aria-label="إزالة الصورة">
+                                <i class="ph-bold ph-trash"></i>
+                            </button>
+                        </div>
+                        <div class="img-hint" id="eventImgHint">يُفضّل صورة عرضية وواضحة. سيتم ضغطها تلقائياً.</div>
+                    </div>
+                    <div class="modal-footer" style="padding:15px 0 0; background:none; border-top:1px solid var(--border); margin-top:5px;">
+                        <button type="submit" class="btn btn-primary" style="flex:1">حفظ الأمسية</button>
+                        <button type="button" class="btn btn-sync" style="background:#eee; color:#333;" onclick="resetEventForm()">تفريغ الحقول</button>
+                    </div>
+
+                    <hr style="margin: 22px 0 16px; border: none; border-top: 1px solid var(--border);">
+                    <label style="display:block; font-weight:800; margin-bottom:12px; color:var(--sub);">الأمسيات المضافة</label>
+                    <div id="eventsListContainer">
+                        <!-- Events listed here -->
+                    </div>
+                </div>
+            </form>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-sync" style="background:#eee; color:#333; flex:1;" onclick="closeEventsModal()">إغلاق</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WORKING HOURS (أوقات العمل) MODAL -->
+    <div class="modal-overlay" id="hoursModalOverlay">
+        <div class="modal">
+            <div class="modal-hdr">
+                <h2>أوقات عمل المطعم</h2>
+                <i class="ph-bold ph-x" style="cursor:pointer" onclick="closeHoursModal()"></i>
+            </div>
+            <div class="modal-body">
+                <p style="color:var(--sub); font-size:14px; margin-bottom:20px;">
+                    حدّد ساعة الفتح وساعة الغلق. سيظهر للزبائن في أعلى الموقع أنّ المطعم "مفتوح الآن" أو "مغلق" حسب الوقت الحالي.
+                </p>
+                <div class="field">
+                    <label>ساعة الفتح</label>
+                    <input type="time" id="hoursOpen" value="12:00" style="text-align:center; direction:ltr;" onchange="updateHoursPreview()" oninput="updateHoursPreview()">
+                </div>
+                <div class="field">
+                    <label>ساعة الغلق</label>
+                    <input type="time" id="hoursClose" value="23:00" style="text-align:center; direction:ltr;" onchange="updateHoursPreview()" oninput="updateHoursPreview()">
+                    <div class="img-hint">لو المطعم يغلق بعد منتصف الليل (مثلاً 2:00 صباحاً) اكتب 02:00 وسيُحتسب تلقائياً.</div>
+                </div>
+                <div class="field">
+                    <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:800;">
+                        <input type="checkbox" id="hoursEnabled" checked style="width:20px; height:20px; cursor:pointer;" onchange="updateHoursPreview()">
+                        إظهار أوقات العمل للزبائن في الموقع
+                    </label>
+                </div>
+                <div id="hoursPreview" style="margin-top:10px; padding:14px; border-radius:12px; background:var(--bg); font-weight:700; text-align:center; color:var(--red);"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" style="flex:1;" onclick="saveHours()">حفظ الأوقات</button>
+                <button type="button" class="btn btn-sync" style="background:#eee; color:#333;" onclick="closeHoursModal()">إغلاق</button>
             </div>
         </div>
     </div>
@@ -943,6 +1047,43 @@
             }
         }
 
+        /* ── صورة الأمسية: نفس ضغط صور الوجبات ── */
+        function setEventImgPreview(dataUrl) {
+            const wrap = document.getElementById('eventImgPreviewWrap');
+            const hint = document.getElementById('eventImgHint');
+            if (dataUrl) {
+                document.getElementById('eventImgPreview').src = dataUrl;
+                wrap.style.display = 'block';
+                hint.style.display = 'none';
+            } else {
+                document.getElementById('eventImgPreview').removeAttribute('src');
+                wrap.style.display = 'none';
+                hint.style.display = 'block';
+            }
+        }
+        function clearEventImg() {
+            document.getElementById('eventImg').value = '';
+            document.getElementById('eventImgFile').value = '';
+            setEventImgPreview('');
+        }
+        async function handleEventImgFile(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (!file.type.startsWith('image/')) {
+                alert('يرجى اختيار ملف صورة فقط.');
+                input.value = '';
+                return;
+            }
+            try {
+                const dataUrl = await compressImage(file);
+                document.getElementById('eventImg').value = dataUrl;
+                setEventImgPreview(dataUrl);
+            } catch (err) {
+                alert(err.message || 'تعذّر معالجة الصورة.');
+                input.value = '';
+            }
+        }
+
         function addCategory() {
             const name = document.getElementById('newCatName').value.trim();
             if(!name) return;
@@ -1017,6 +1158,194 @@
             select.value = currentVal;
         }
 
+        /* ══════════════════════════════
+           إدارة الأمسيات (Events)
+        ══════════════════════════════ */
+        let EVENTS = [];
+
+        function eventRank(e) {
+            return (e && typeof e.order === 'number' && Number.isFinite(e.order)) ? e.order : 0;
+        }
+        function sortEvents(list) {
+            return list.slice().sort((a, b) => eventRank(a) - eventRank(b));
+        }
+
+        function openEventsModal() {
+            document.getElementById('eventsModalOverlay').style.display = 'flex';
+            resetEventForm();
+            renderEventsList();
+        }
+        function closeEventsModal() {
+            document.getElementById('eventsModalOverlay').style.display = 'none';
+        }
+        function resetEventForm() {
+            document.getElementById('eventForm').reset();
+            document.getElementById('eventId').value = '';
+            document.getElementById('eventDesc').value = '';
+            clearEventImg();
+            document.getElementById('eventModalTitle').innerText = 'إدارة الأمسيات';
+        }
+
+        function renderEventsList() {
+            const container = document.getElementById('eventsListContainer');
+            if (!container) return;
+            if (EVENTS.length === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#999; padding:10px;">لا توجد أمسيات مضافة بعد</p>';
+                return;
+            }
+            const ordered = sortEvents(EVENTS);
+            container.innerHTML = ordered.map((ev, i, arr) => {
+                const upStyle = i === 0 ? 'opacity:.3; pointer-events:none;' : '';
+                const downStyle = i === arr.length - 1 ? 'opacity:.3; pointer-events:none;' : '';
+                const safeImg = safeImgUrl(ev.img);
+                const imgHtml = safeImg
+                    ? `<img src="${attr(safeImg)}" class="item-img" style="width:56px;height:56px;" alt="${attr(ev.name)}">`
+                    : `<div class="item-img" style="width:56px;height:56px;display:flex;align-items:center;justify-content:center;background:var(--red-light);color:var(--accent);"><i class="ph-bold ph-confetti"></i></div>`;
+                return `
+                <div style="display:flex; align-items:center; gap:12px; padding:10px; border-bottom:1px solid #f5f5f5;">
+                    ${imgHtml}
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:800;">${esc(ev.name)}</div>
+                        <div style="font-size:12px; color:var(--sub); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${esc(ev.desc || 'بدون وصف')}</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button type="button" class="act-btn" style="background:#eef2f7; color:#475569; ${upStyle}" title="تحريك لأعلى" onclick="moveEvent('${jsArg(ev.id)}', -1)"><i class="ph-bold ph-arrow-up"></i></button>
+                        <button type="button" class="act-btn" style="background:#eef2f7; color:#475569; ${downStyle}" title="تحريك لأسفل" onclick="moveEvent('${jsArg(ev.id)}', 1)"><i class="ph-bold ph-arrow-down"></i></button>
+                        <button type="button" class="act-btn btn-edit" title="تعديل" onclick="editEvent('${jsArg(ev.id)}')"><i class="ph-bold ph-pencil-simple"></i></button>
+                        <button type="button" class="act-btn btn-del" title="حذف" onclick="deleteEvent('${jsArg(ev.id)}')"><i class="ph-bold ph-trash"></i></button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function editEvent(id) {
+            const ev = EVENTS.find(e => String(e.id) === String(id));
+            if (!ev) return;
+            document.getElementById('eventId').value = ev.id;
+            document.getElementById('eventName').value = ev.name || '';
+            document.getElementById('eventDesc').value = ev.desc || '';
+            document.getElementById('eventImgFile').value = '';
+            document.getElementById('eventImg').value = ev.img || '';
+            setEventImgPreview(safeImgUrl(ev.img || ''));
+            document.getElementById('eventModalTitle').innerText = 'تعديل الأمسية';
+            document.querySelector('#eventsModalOverlay .modal-body').scrollTop = 0;
+        }
+
+        function moveEvent(id, dir) {
+            const ordered = sortEvents(EVENTS);
+            const idx = ordered.findIndex(e => String(e.id) === String(id));
+            if (idx === -1) return;
+            const swap = idx + dir;
+            if (swap < 0 || swap >= ordered.length) return;
+            const tmp = ordered[idx]; ordered[idx] = ordered[swap]; ordered[swap] = tmp;
+            const updates = {};
+            ordered.forEach((e, i) => { updates[e.id + '/order'] = i; });
+            db.child('events').update(updates);
+        }
+
+        function deleteEvent(id) {
+            if (confirm('هل أنت متأكد من حذف هذه الأمسية؟')) {
+                db.child('events').child(id).remove();
+            }
+        }
+
+        document.getElementById('eventForm').onsubmit = (e) => {
+            e.preventDefault();
+            const id = document.getElementById('eventId').value || ('ev_' + Date.now());
+            const name = document.getElementById('eventName').value.trim();
+            if (!name) { alert('يرجى إدخال عنوان الأمسية.'); return; }
+            const rawImg = document.getElementById('eventImg').value.trim();
+            const img = safeImgUrl(rawImg);
+            if (rawImg && !img) { alert('صورة غير مدعومة، جرّب صورة أخرى.'); return; }
+
+            // حافظ على ترتيب الأمسية عند التعديل، وإلا ضعها في النهاية
+            const existing = EVENTS.find(ev => String(ev.id) === String(id));
+            const order = existing ? eventRank(existing)
+                : (EVENTS.length ? Math.max(...EVENTS.map(eventRank)) + 1 : 0);
+
+            const ev = {
+                id,
+                name,
+                desc: document.getElementById('eventDesc').value.trim(),
+                img,
+                order
+            };
+
+            const btn = e.submitter;
+            const originalText = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i> جاري الحفظ...';
+
+            db.child('events').child(id).set(ev).then(() => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                resetEventForm();
+                showToast('تم حفظ الأمسية وعرضها للزبائن ✅');
+            }).catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+                alert('تعذّر الحفظ: ' + (err && err.message ? err.message : 'خطأ غير معروف'));
+            });
+        };
+
+        /* ══════════════════════════════
+           أوقات العمل (Working Hours)
+        ══════════════════════════════ */
+        let HOURS = { open: '12:00', close: '23:00', enabled: true };
+
+        function fmtHour12(hhmm) {
+            const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '').trim());
+            if (!m) return hhmm || '';
+            const H = parseInt(m[1], 10);
+            const min = m[2];
+            let period;
+            if (H === 0) period = 'منتصف الليل';
+            else if (H < 12) period = 'صباحاً';
+            else if (H === 12) period = 'ظهراً';
+            else if (H < 18) period = 'عصراً';
+            else period = 'مساءً';
+            const h = H % 12 || 12;
+            return h + ':' + min + ' ' + period;
+        }
+
+        function updateHoursPreview() {
+            const open = document.getElementById('hoursOpen').value || '12:00';
+            const close = document.getElementById('hoursClose').value || '23:00';
+            const enabled = document.getElementById('hoursEnabled').checked;
+            const el = document.getElementById('hoursPreview');
+            if (!enabled) {
+                el.innerHTML = 'أوقات العمل <b>مخفية</b> عن الزبائن حالياً.';
+                el.style.color = 'var(--sub)';
+                return;
+            }
+            el.style.color = 'var(--red)';
+            el.innerHTML = 'سيظهر للزبائن: من <b>' + fmtHour12(open) + '</b> إلى <b>' + fmtHour12(close) + '</b>';
+        }
+
+        function openHoursModal() {
+            document.getElementById('hoursOpen').value = HOURS.open || '12:00';
+            document.getElementById('hoursClose').value = HOURS.close || '23:00';
+            document.getElementById('hoursEnabled').checked = HOURS.enabled !== false;
+            updateHoursPreview();
+            document.getElementById('hoursModalOverlay').style.display = 'flex';
+        }
+        function closeHoursModal() {
+            document.getElementById('hoursModalOverlay').style.display = 'none';
+        }
+
+        function saveHours() {
+            const open = document.getElementById('hoursOpen').value;
+            const close = document.getElementById('hoursClose').value;
+            if (!open || !close) { alert('يرجى تحديد ساعة الفتح وساعة الغلق.'); return; }
+            const data = { open, close, enabled: document.getElementById('hoursEnabled').checked };
+            db.child('settings').child('hours').set(data).then(() => {
+                closeHoursModal();
+                showToast('تم حفظ أوقات العمل ✅');
+            }).catch(err => {
+                alert('تعذّر الحفظ: ' + (err && err.message ? err.message : 'خطأ غير معروف'));
+            });
+        }
+
         let db;
         function init() {
             if(typeof firebase === 'undefined') {
@@ -1041,6 +1370,27 @@
                 db.child('items').once('value', s => {
                     if(s.val()) renderDashboard({ items: s.val() });
                 });
+            });
+
+            // Listen to Events (الأمسيات)
+            db.child('events').on('value', snap => {
+                const data = snap.val();
+                EVENTS = data ? sortEvents(Object.values(data)) : [];
+                if (document.getElementById('eventsModalOverlay').style.display === 'flex') {
+                    renderEventsList();
+                }
+            });
+
+            // Listen to Settings (أوقات العمل)
+            db.child('settings/hours').on('value', snap => {
+                const data = snap.val();
+                if (data) HOURS = { open: data.open || '12:00', close: data.close || '23:00', enabled: data.enabled !== false };
+                if (document.getElementById('hoursModalOverlay').style.display === 'flex') {
+                    document.getElementById('hoursOpen').value = HOURS.open;
+                    document.getElementById('hoursClose').value = HOURS.close;
+                    document.getElementById('hoursEnabled').checked = HOURS.enabled;
+                    updateHoursPreview();
+                }
             });
 
             // Listen to data

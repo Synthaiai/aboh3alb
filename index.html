@@ -43,6 +43,13 @@
     </button>
   </header>
 
+  <!-- WORKING HOURS BAR (يظهر أوقات العمل وحالة المطعم) -->
+  <div class="hours-bar" id="hoursBar" style="display:none" role="status" aria-live="polite">
+    <span class="hb-state" id="hbState"></span>
+    <span class="hb-sep">•</span>
+    <span class="hb-time" id="hbTime"></span>
+  </div>
+
 
 
   <!-- SEARCH -->
@@ -76,6 +83,13 @@
         <p class="intro-note">
           تواجدكم يضيف لنا التميز.. شكراً لثقتكم الدائمة ❤️</p>
       </div>
+
+      <!-- أمسياتنا (Events) — تظهر تلقائياً عند إضافتها من لوحة الإدارة -->
+      <div class="ev-sec" id="evSec" style="display:none">
+        <div class="sec-h"><i class="ph-bold ph-confetti"></i> أمسياتنا</div>
+        <div class="ev-wrap" id="evWrap"></div>
+      </div>
+
       <div class="sec-h">المميزات</div>
       <div class="feat-wrap" id="featWrap">
         <div class="feat-s" id="featS"></div>
@@ -285,6 +299,8 @@
     };
     let CATS = [];
     let DB = {};
+    let EVENTS = [];          // أمسياتنا
+    let HOURS = null;         // أوقات العمل { open, close, enabled }
 
     // الترتيب الثابت للأقسام: المأكولات ← الباريستا والحلويات ← المشروبات ← الأراكيل
     const CAT_ORDER = [
@@ -361,9 +377,101 @@
         if (it && DB[it.cat]) DB[it.cat].push(it);
       });
 
+      // الأمسيات + أوقات العمل (من السحابة فقط)
+      EVENTS = finalData.events
+        ? (Array.isArray(finalData.events) ? finalData.events : Object.values(finalData.events))
+        : [];
+      HOURS = (finalData.settings && finalData.settings.hours) ? finalData.settings.hours : HOURS;
+
       renderLiveUI();
       populate();
+      renderEvents();
+      renderHours();
       setTimeout(initReveal, 100);
+    }
+
+    /* ══════════════════════════════
+       أمسياتنا (Events) — تُعرض كإعلانات مرتبة في الرئيسية
+    ══════════════════════════════ */
+    function eventRank(e) {
+      return (e && typeof e.order === 'number' && Number.isFinite(e.order)) ? e.order : 0;
+    }
+    function renderEvents() {
+      const sec = document.getElementById('evSec');
+      const wrap = document.getElementById('evWrap');
+      if (!sec || !wrap) return;
+      const list = (EVENTS || []).filter(e => e && e.name).slice().sort((a, b) => eventRank(a) - eventRank(b));
+      if (list.length === 0) { sec.style.display = 'none'; wrap.innerHTML = ''; return; }
+      sec.style.display = 'block';
+      wrap.innerHTML = list.map((ev, i) => {
+        const img = safeImgUrl(ev.img);
+        const media = img
+          ? `<div class="ev-media"><img src="${attr(img)}" alt="${attr(ev.name)}" loading="lazy" decoding="async" onerror="this.closest('.ev-media').remove()"></div>`
+          : '';
+        const desc = ev.desc ? `<div class="ev-desc">${esc(ev.desc)}</div>` : '';
+        return `<div class="ev-card" style="--reveal-delay:${i * 0.06}s">
+          ${media}
+          <div class="ev-body">
+            <span class="ev-badge"><i class="ph-fill ph-star"></i> أمسية</span>
+            <div class="ev-name">${esc(ev.name)}</div>
+            ${desc}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    /* ══════════════════════════════
+       أوقات العمل — شريط أعلى الموقع + حالة مفتوح/مغلق
+    ══════════════════════════════ */
+    function fmtHour12(hhmm) {
+      const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '').trim());
+      if (!m) return hhmm || '';
+      const H = parseInt(m[1], 10);
+      const min = m[2];
+      let period;
+      if (H === 0) period = 'منتصف الليل';
+      else if (H < 12) period = 'صباحاً';
+      else if (H === 12) period = 'ظهراً';
+      else if (H < 18) period = 'عصراً';
+      else period = 'مساءً';
+      const h = H % 12 || 12;
+      return h + ':' + min + ' ' + period;
+    }
+    function hhmmToMin(hhmm) {
+      const m = /^(\d{1,2}):(\d{2})$/.exec(String(hhmm || '').trim());
+      if (!m) return null;
+      return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    }
+    function isOpenNow(open, close) {
+      const o = hhmmToMin(open), c = hhmmToMin(close);
+      if (o === null || c === null) return false;
+      const now = new Date();
+      const n = now.getHours() * 60 + now.getMinutes();
+      // يغلق بعد منتصف الليل (c <= o): مفتوح من الفتح حتى نهاية اليوم ومن بداية اليوم حتى الغلق
+      if (c <= o) return n >= o || n < c;
+      return n >= o && n < c;
+    }
+    let hoursTimer = null;
+    function renderHours() {
+      const bar = document.getElementById('hoursBar');
+      if (!bar) return;
+      const h = HOURS;
+      if (!h || h.enabled === false || !h.open || !h.close) {
+        bar.style.display = 'none';
+        if (hoursTimer) { clearInterval(hoursTimer); hoursTimer = null; }
+        return;
+      }
+      const open = isOpenNow(h.open, h.close);
+      bar.classList.toggle('is-open', open);
+      bar.classList.toggle('is-closed', !open);
+      document.getElementById('hbState').innerHTML = open
+        ? '<i class="ph-fill ph-door-open"></i> مفتوح الآن'
+        : '<i class="ph-fill ph-moon"></i> مغلق حالياً';
+      document.getElementById('hbTime').textContent =
+        'من ' + fmtHour12(h.open) + ' إلى ' + fmtHour12(h.close);
+      bar.style.display = 'flex';
+      // حدّث الحالة كل دقيقة حتى تتغير تلقائياً عند الفتح/الغلق
+      if (!hoursTimer) hoursTimer = setInterval(renderHours, 60000);
     }
 
     function renderLiveUI() {
@@ -669,6 +777,58 @@
       </div>`;
     }
 
+    /* ══════════════════════════════
+       الأكثر طلباً — مجموعة تتغيّر كل زيارة وكل فترة
+       (الصور نفس صور المنيو من قاعدة البيانات عبر rCard/resolveImg)
+    ══════════════════════════════ */
+    const POPULAR_COUNT = 6;
+    let popularTimer = null;
+
+    function shuffleArr(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+
+    // نختار أصنافاً عشوائية من كل المنيو، مع تفضيل بسيط للأصناف المميّزة (badge)
+    function pickPopular() {
+      const items = all().filter(i => i && i.name);
+      if (!items.length) return [];
+      const badged = shuffleArr(items.filter(i => i.badge));
+      const others = shuffleArr(items.filter(i => !i.badge));
+      // نضمن ظهور صنف أو اثنين مميّزين ثم نكمل عشوائياً، والكل يتبدّل كل مرة
+      const pool = [...badged.slice(0, 2), ...shuffleArr([...badged.slice(2), ...others])];
+      return pool.slice(0, Math.min(POPULAR_COUNT, pool.length));
+    }
+
+    function renderPopular() {
+      const popG = document.getElementById('popG');
+      if (!popG) return;
+      const picks = pickPopular();
+      if (!picks.length) {
+        if (!popG.innerHTML || popG.innerHTML.includes('skeleton')) {
+          popG.innerHTML = Array(3).fill('<div class="ic skeleton" style="height:210px;border-radius:24px;opacity:0.5"></div>').join('');
+        }
+        return;
+      }
+      popG.innerHTML = picks.map((it, i) => rCard(it, i * .05)).join('');
+      setTimeout(initReveal, 30);
+    }
+
+    // تبديل تلقائي كل فترة — فقط في الرئيسية وبدون أي نافذة مفتوحة أو بحث
+    function startPopularRotation() {
+      if (popularTimer) clearInterval(popularTimer);
+      popularTimer = setInterval(() => {
+        const homeActive = document.getElementById('home')?.classList.contains('sec-active');
+        const anyOverlay = document.querySelector('.dov.on, .mov.on, .fov.on, .sov.on, .cov.on');
+        const searching = (document.querySelector('.srch input')?.value || '').trim();
+        if (homeActive && !anyOverlay && !searching) renderPopular();
+      }, 20000);
+    }
+
     /* ── POPULATE ── */
     function populate() {
       CATS.forEach(c => {
@@ -683,17 +843,8 @@
         }
       });
 
-      // popular: items with badge
-      const popG = document.getElementById('popG');
-      if (popG) {
-        if (!popG.innerHTML || popG.innerHTML.includes('skeleton')) {
-          popG.innerHTML = Array(3).fill('<div class="ic skeleton" style="height:210px;border-radius:24px;opacity:0.5"></div>').join('');
-        }
-        const popularItems = all().filter(i => i.badge);
-        if (popularItems.length > 0) {
-          popG.innerHTML = popularItems.map((it, i) => rCard(it, i * .05)).join('');
-        }
-      }
+      // الأكثر طلباً: مجموعة تتغيّر كل زيارة (وكل فترة) بصور المنيو من قاعدة البيانات
+      renderPopular();
 
       // featured slider
       document.getElementById('featS').innerHTML = FEAT.map((f, idx) => {
@@ -1242,6 +1393,7 @@
     initSwipe('dov', closeDrawer);
     initSwipe('mov', closeModal);
     initSwipe('fov', closeForm);
+    startPopularRotation();   // تبديل "الأكثر طلباً" كل فترة
     // تم إيقاف إشعار طلب الموقع عند دخول المستخدم (يظهر فقط عند إكمال الطلب أونلاين)
 
     /* ── CACHE CLEAR & SERVICE WORKER ── */
