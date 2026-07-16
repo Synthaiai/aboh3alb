@@ -167,6 +167,24 @@
     </div>
   </div>
 
+  <!-- FLAVOR PICKER (اختيار نوع الأركيلة) -->
+  <div class="mov" id="flov" onclick="closeFlavorOv(event)">
+    <div class="modal">
+      <div class="m-body">
+        <div class="m-handle"></div>
+        <div class="m-top">
+          <div class="m-name" id="flName">اختر نوع الأركيلة</div>
+          <div class="m-price" id="flPrice"></div>
+        </div>
+        <div class="m-desc">اختر الطعم الذي تحبه، ونجهزه لك ونوصله لباب بيتك 💨</div>
+        <div class="fl-list" id="flList"></div>
+        <button class="m-add" id="flAdd" onclick="confirmFlavor()">
+          <i class="ph-bold ph-plus-circle"></i> أضف إلى السلة
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- PREMIUM ALERT -->
   <div class="aov" id="aov">
     <div class="palert" onclick="closeAlert()">
@@ -521,6 +539,8 @@
     let cart = [];
     const DELIVERY_FEE = 1000; // أجور التوصيل: ألف دينار عراقي تُضاف عند الطلب أونلاين
     let modalItem = null;
+    let flavorItem = null;    // الصنف الذي ينتظر اختيار الطعم
+    let flavorPick = null;    // الطعم المختار حالياً
     let toastTimer;
 
     /* ── UTILS ── */
@@ -1012,8 +1032,76 @@
     function closeModalOv(e) { if (e.target === document.getElementById('mov')) closeModal(); }
     function addFromModal() { if (modalItem) { addToCart(modalItem.id); closeModal(); } }
 
+    /* ── FLAVOR PICKER: أصناف اركيلة التوصيل تحتاج اختيار الطعم ── */
+    const FLAVOR_SRC_CAT = 'hookah';                    // مصدر النكهات: قسم الأراكيل
+    const FLAVOR_TARGET_CATS = ['cat_1783885219018'];   // أقسام تُلزم الزبون باختيار الطعم
+
+    // هل هذا الصنف يحتاج اختيار طعم؟ (قسم اركيلة التوصيل)
+    function needsFlavor(item) {
+      if (!item || !item.cat || item.cat === FLAVOR_SRC_CAT) return false;
+      if (FLAVOR_TARGET_CATS.includes(item.cat)) return true;
+      const cat = CATS.find(c => c && c.id === item.cat);
+      return !!(cat && /ارك|أرك/.test(String(cat.name || '')));
+    }
+
+    // نكهات قسم الأراكيل بعد حذف كلمة "أركيلة" من البداية
+    function flavorList() {
+      const seen = new Set();
+      return (DB[FLAVOR_SRC_CAT] || []).map(i => {
+        return String(i.name || '').replace(/^\s*[أا]ركيلة\s*/, '').trim();
+      }).filter(n => n && !seen.has(n) && seen.add(n));
+    }
+
+    function openFlavor(id) {
+      const item = getItem(id);
+      if (!item) return;
+      const flavors = flavorList();
+      if (!flavors.length) { addToCart(id, true, true); return; }  // لا نكهات: أضِف مباشرة
+
+      flavorItem = item; flavorPick = null;
+      document.getElementById('flName').textContent = item.name;
+      document.getElementById('flPrice').textContent = money(item.price) + ' د.ع';
+      document.getElementById('flList').innerHTML = flavors.map(f =>
+        `<div class="fl-chip" onclick="pickFlavor('${jsArg(f)}', this)"><i class="ph-bold ph-check-circle"></i>${esc(f)}</div>`
+      ).join('');
+      document.getElementById('flAdd').disabled = true;
+      closeModal();
+      document.getElementById('flov').classList.add('on');
+    }
+    function pickFlavor(name, el) {
+      flavorPick = name;
+      document.querySelectorAll('#flList .fl-chip').forEach(c => c.classList.remove('on'));
+      if (el) el.classList.add('on');
+      document.getElementById('flAdd').disabled = false;
+    }
+    function confirmFlavor() {
+      if (!flavorItem) return;
+      if (!flavorPick) { showToast('يرجى اختيار نوع الأركيلة'); return; }
+      addFlavored(flavorItem, flavorPick);
+      closeFlavor();
+    }
+    function closeFlavor() {
+      document.getElementById('flov').classList.remove('on');
+      document.querySelectorAll('#flList .fl-chip').forEach(c => c.classList.remove('on'));
+      document.getElementById('flAdd').disabled = true;
+      flavorItem = null; flavorPick = null;
+    }
+    function closeFlavorOv(e) { if (e.target === document.getElementById('flov')) closeFlavor(); }
+
+    // كل طعم يصير سطر مستقل بالسلة حتى يقدر الزبون يطلب أكثر من نوع
+    function addFlavored(base, flavor) {
+      const lineId = base.id + '::' + flavor;
+      const ex = cart.find(c => String(c.id) === lineId);
+      if (ex) ex.qty++;
+      else cart.push({ ...base, id: lineId, baseId: base.id, flavor, name: `${base.name} (${flavor})`, qty: 1 });
+      updateUI(); renderDrawer();
+      showToast('تمت إضافة ' + base.name + ' — ' + flavor);
+    }
+
     /* ── CART ── */
     function qadd(id, btn) {
+      // أصناف اركيلة التوصيل: نفتح اختيار الطعم بدل الإضافة المباشرة (بلا حركة الطيران)
+      if (needsFlavor(getItem(id))) { openFlavor(id); return; }
       addToCart(id);
       if (btn) {
         btn.style.transform = 'scale(1.55)';
@@ -1040,9 +1128,10 @@
       }
     }
 
-    function addToCart(id, skipSuggest = false) {
+    function addToCart(id, skipSuggest = false, skipFlavor = false) {
       const item = getItem(id);
       if (!item) return;
+      if (!skipFlavor && needsFlavor(item)) { openFlavor(item.id); return; }
       const ex = cart.find(c => String(c.id) === String(id));
       if (ex) ex.qty++;
       else cart.push({ ...item, qty: 1 });
