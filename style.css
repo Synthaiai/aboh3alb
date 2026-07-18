@@ -912,6 +912,37 @@ body > * {
 
 @media (max-width:360px) { .fl-list { grid-template-columns:1fr; } }
 
+/* ─── FISH PICKER (وزن وسعر سمك التوصيل) ─── */
+.fish-label {
+  margin-top:16px; margin-bottom:8px;
+  font-family:var(--font-ui); font-size:13px; font-weight:800; color:var(--ink);
+  opacity:.75;
+}
+#fishWeights { margin-top:0; max-height:none; }
+.fish-tiers { display:grid; gap:9px; }
+.fish-tier {
+  background:var(--bg2); border:1.5px solid transparent; border-radius:14px;
+  padding:12px 13px; cursor:pointer; text-align:right;
+  display:flex; align-items:center; gap:9px;
+  transition:border-color .2s, background .2s, transform .2s;
+}
+.fish-tier:active { transform:scale(.98); }
+.fish-tier.on {
+  border-color:var(--red); background:var(--white);
+  box-shadow:0 6px 16px var(--sh);
+}
+.fish-tier i { font-size:18px; color:var(--red); opacity:0; transition:opacity .2s; flex:0 0 auto; }
+.fish-tier.on i { opacity:1; }
+.fish-tier-body { flex:1; min-width:0; }
+.fish-tier-price {
+  font-family:var(--font-ui); font-size:14px; font-weight:800; color:var(--ink);
+}
+.fish-tier.on .fish-tier-price { color:var(--red); }
+.fish-tier-inc {
+  font-family:var(--font-ui); font-size:12px; font-weight:600; color:var(--ink);
+  opacity:.7; margin-top:2px;
+}
+
 /* ─── 13. FLOAT BAR ─── */
 .fbar {
   position:fixed; bottom:22px; left:50%;

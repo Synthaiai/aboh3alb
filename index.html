@@ -185,6 +185,27 @@
     </div>
   </div>
 
+  <!-- FISH PICKER (اختيار وزن وسعر سمك التوصيل) -->
+  <div class="mov" id="fishov" onclick="closeFishOv(event)">
+    <div class="modal">
+      <div class="m-body">
+        <div class="m-handle"></div>
+        <div class="m-top">
+          <div class="m-name" id="fishName">سمك مسكوف توصيل</div>
+          <div class="m-price" id="fishTotal"></div>
+        </div>
+        <div class="m-desc">اختر وزن السمكة والسعر، ونجهزها لك طازة ونوصلها لباب بيتك 🐟</div>
+        <div class="fish-label">كم كيلو تريد؟</div>
+        <div class="fl-list" id="fishWeights"></div>
+        <div class="fish-label">اختر السعر</div>
+        <div class="fish-tiers" id="fishTiers"></div>
+        <button class="m-add" id="fishAdd" onclick="confirmFish()">
+          <i class="ph-bold ph-plus-circle"></i> أضف إلى السلة
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- PREMIUM ALERT -->
   <div class="aov" id="aov">
     <div class="palert" onclick="closeAlert()">
@@ -400,6 +421,7 @@
         ? (Array.isArray(finalData.events) ? finalData.events : Object.values(finalData.events))
         : [];
       HOURS = (finalData.settings && finalData.settings.hours) ? finalData.settings.hours : HOURS;
+      applyFishSettings(finalData.settings && finalData.settings.fish);
 
       renderLiveUI();
       populate();
@@ -1098,8 +1120,120 @@
       showToast('تمت إضافة ' + base.name + ' — ' + flavor);
     }
 
+    /* ── FISH PICKER: أصناف سمك التوصيل تحتاج اختيار الوزن والسعر ── */
+    // القيم الافتراضية — يتحكم بها المدير من لوحة الإدارة (settings/fish)
+    let FISH_WEIGHTS = [
+      { kg: 2,   label: 'كيلوين' },
+      { kg: 2.5, label: 'كيلوين ونص' },
+      { kg: 3,   label: '3 كيلوات' },
+    ];
+    // خيارات السعر لكل كيلو + ما يجي مع الطلب
+    let FISH_TIERS = [
+      { perKg: 10000, label: '10 آلاف للكيلو', includes: 'السمكة + خبز + سلطة عمبة' },
+      { perKg: 12500, label: '12 ونص للكيلو', includes: 'مقبلات + تمن + خبز + سلطة عمبة' },
+    ];
+
+    // تحديث إعدادات سمك التوصيل من السحابة (يبقى على الافتراضي إن لم تُضبط)
+    function applyFishSettings(fish) {
+      if (!fish) return;
+      const toArr = v => Array.isArray(v) ? v : (v && typeof v === 'object' ? Object.values(v) : []);
+      const w = toArr(fish.weights)
+        .map(x => ({ kg: Number(x && x.kg), label: String((x && x.label) || '').trim() }))
+        .filter(x => Number.isFinite(x.kg) && x.kg > 0 && x.label);
+      const t = toArr(fish.tiers)
+        .map(x => ({ perKg: Number(x && x.perKg), label: String((x && x.label) || '').trim(), includes: String((x && x.includes) || '').trim() }))
+        .filter(x => Number.isFinite(x.perKg) && x.perKg > 0 && x.label);
+      if (w.length) FISH_WEIGHTS = w;
+      if (t.length) FISH_TIERS = t;
+    }
+
+    let fishItem = null;        // الصنف الذي ينتظر اختيار الوزن/السعر
+    let fishWeightIdx = null;   // فهرس الوزن المختار
+    let fishTierIdx = null;     // فهرس السعر المختار
+
+    // هل هذا الصنف من قسم سمك التوصيل؟ (نكشفه من اسم القسم حتى يتحدث تلقائياً من اللوحة)
+    function needsFish(item) {
+      if (!item || !item.cat) return false;
+      const cat = CATS.find(c => c && c.id === item.cat);
+      const nm = cat ? String(cat.name || '') : '';
+      return /سمك/.test(nm) && /توص/.test(nm);
+    }
+
+    function fishTotal() {
+      if (fishWeightIdx == null || fishTierIdx == null) return null;
+      return Math.round(FISH_WEIGHTS[fishWeightIdx].kg * FISH_TIERS[fishTierIdx].perKg);
+    }
+
+    function openFish(id) {
+      const item = getItem(id);
+      if (!item) return;
+      fishItem = item; fishWeightIdx = null; fishTierIdx = null;
+      document.getElementById('fishName').textContent = item.name;
+      document.getElementById('fishTotal').textContent = '';
+      document.getElementById('fishWeights').innerHTML = FISH_WEIGHTS.map((w, i) =>
+        `<div class="fl-chip" onclick="pickFishWeight(${i}, this)"><i class="ph-bold ph-check-circle"></i>${esc(w.label)}</div>`
+      ).join('');
+      document.getElementById('fishTiers').innerHTML = FISH_TIERS.map((t, i) =>
+        `<div class="fish-tier" onclick="pickFishTier(${i}, this)">
+           <i class="ph-bold ph-check-circle"></i>
+           <div class="fish-tier-body">
+             <div class="fish-tier-price">${esc(t.label)}</div>
+             <div class="fish-tier-inc">${esc(t.includes)}</div>
+           </div>
+         </div>`
+      ).join('');
+      document.getElementById('fishAdd').disabled = true;
+      closeModal();
+      document.getElementById('fishov').classList.add('on');
+    }
+    function pickFishWeight(i, el) {
+      fishWeightIdx = i;
+      document.querySelectorAll('#fishWeights .fl-chip').forEach(c => c.classList.remove('on'));
+      if (el) el.classList.add('on');
+      updateFishTotal();
+    }
+    function pickFishTier(i, el) {
+      fishTierIdx = i;
+      document.querySelectorAll('#fishTiers .fish-tier').forEach(c => c.classList.remove('on'));
+      if (el) el.classList.add('on');
+      updateFishTotal();
+    }
+    function updateFishTotal() {
+      const t = fishTotal();
+      document.getElementById('fishTotal').textContent = t == null ? '' : money(t) + ' د.ع';
+      document.getElementById('fishAdd').disabled = (t == null);
+    }
+    function confirmFish() {
+      if (!fishItem) return;
+      if (fishWeightIdx == null) { showToast('يرجى اختيار الوزن'); return; }
+      if (fishTierIdx == null) { showToast('يرجى اختيار السعر'); return; }
+      addFish(fishItem, FISH_WEIGHTS[fishWeightIdx], FISH_TIERS[fishTierIdx]);
+      closeFish();
+    }
+    function closeFish() {
+      document.getElementById('fishov').classList.remove('on');
+      fishItem = null; fishWeightIdx = null; fishTierIdx = null;
+    }
+    function closeFishOv(e) { if (e.target === document.getElementById('fishov')) closeFish(); }
+
+    // كل تركيبة (وزن + سعر) تصير سطر مستقل بالسلة، والسعر = عدد الكيلو × سعر الكيلو
+    function addFish(base, weight, tier) {
+      const total = Math.round(weight.kg * tier.perKg);
+      const lineId = base.id + '::' + weight.kg + '::' + tier.perKg;
+      const ex = cart.find(c => String(c.id) === lineId);
+      if (ex) ex.qty++;
+      else cart.push({
+        ...base, id: lineId, baseId: base.id, qty: 1, price: total,
+        name: `${base.name} — ${weight.label} (${tier.includes})`
+      });
+      updateUI(); renderDrawer();
+      showToast('تمت إضافة ' + base.name + ' — ' + weight.label);
+    }
+
     /* ── CART ── */
     function qadd(id, btn) {
+      // أصناف سمك التوصيل: نفتح اختيار الوزن والسعر بدل الإضافة المباشرة
+      if (needsFish(getItem(id))) { openFish(id); return; }
       // أصناف اركيلة التوصيل: نفتح اختيار الطعم بدل الإضافة المباشرة (بلا حركة الطيران)
       if (needsFlavor(getItem(id))) { openFlavor(id); return; }
       addToCart(id);
@@ -1131,6 +1265,7 @@
     function addToCart(id, skipSuggest = false, skipFlavor = false) {
       const item = getItem(id);
       if (!item) return;
+      if (!skipFlavor && needsFish(item)) { openFish(item.id); return; }
       if (!skipFlavor && needsFlavor(item)) { openFlavor(item.id); return; }
       const ex = cart.find(c => String(c.id) === String(id));
       if (ex) ex.qty++;
