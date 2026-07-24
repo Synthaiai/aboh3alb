@@ -1,4 +1,4 @@
-const CACHE_NAME = 'h3alb-v41';
+const CACHE_NAME = 'h3alb-v42';
 const ASSETS = [
   './',
   './index.html',
@@ -30,14 +30,15 @@ self.addEventListener('activate', e => {
 
 // 3. Fetch - Smart Strategy
 self.addEventListener('fetch', e => {
+  if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
 
   // Strategy A: Cache First for Fonts, Icons & Images (Static, rarely change)
-  // الصور تُخزَّن وتُخدَم من الكاش مباشرة بعد أول تحميل → سرعة وسلاسة وتوفير بيانات.
+  // الصور والخطوط تُخدَم من الكاش مباشرة → سرعة وسلاسة وتوفير بيانات وتعمل أوفلاين.
   if (url.hostname.includes('fonts.googleapis.com') ||
       url.hostname.includes('fonts.gstatic.com') ||
       url.hostname.includes('unpkg.com') ||
-      /\.(webp|png|jpe?g|gif|avif|svg)$/i.test(url.pathname)) {
+      /\.(webp|png|jpe?g|gif|avif|svg|woff2?)$/i.test(url.pathname)) {
     e.respondWith(
       caches.match(e.request).then(cached => {
         return cached || fetch(e.request).then(res => {
@@ -50,16 +51,15 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Strategy B: Stale-While-Revalidate for JS, CSS, HTML
+  // Strategy B: Network First for HTML, JS, CSS (دائماً أحدث نسخة عند وجود نت)
+  // أونلاين → نجيب الجديد من الشبكة ونحدّث الكاش. أوفلاين → نرجع للكاش فيشتغل الموقع بدون نت.
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      const networked = fetch(e.request).then(res => {
-        const resClone = res.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
-        return res;
-      }).catch(() => null);
-
-      return cached || networked;
-    })
+    fetch(e.request).then(res => {
+      const resClone = res.clone();
+      caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+      return res;
+    }).catch(() =>
+      caches.match(e.request).then(cached => cached || caches.match('./index.html'))
+    )
   );
 });

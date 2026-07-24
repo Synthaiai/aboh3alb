@@ -292,7 +292,7 @@
         </div>
         <div class="fm-grp">
           <label>رقم الشقة <span style="color:#c0392b">*</span></label>
-          <input type="number" id="custApt" placeholder="مثال: 3" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
+          <input type="text" id="custApt" placeholder="مثال: 3 أو G" inputmode="text" dir="ltr" style="text-align:right">
         </div>
       </div>
       <div class="fm-grp">
@@ -1634,17 +1634,28 @@
     }
 
     // Force clear once if needed (e.g. after a major fix)
-    if (!localStorage.getItem('nashmi_cache_cleared_v32')) {
+    if (!localStorage.getItem('nashmi_cache_cleared_v42')) {
       clearAllCaches().then(() => {
-        localStorage.setItem('nashmi_cache_cleared_v32', 'true');
+        localStorage.setItem('nashmi_cache_cleared_v42', 'true');
         location.reload();
       });
     }
 
     if ('serviceWorker' in navigator) {
+      // إعادة التحميل تلقائياً عند تفعيل نسخة جديدة من الـ Service Worker
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (refreshing) return;
+        refreshing = true;
+        location.reload();
+      });
+
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(reg => {
           console.log('SW Registered');
+          // فحص وجود تحديث جديد فوراً وكل فترة
+          reg.update();
+          setInterval(() => reg.update(), 60 * 1000);
         }).catch(err => {
           console.log('SW Registration failed', err);
         });
