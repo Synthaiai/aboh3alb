@@ -1,4 +1,4 @@
-const CACHE_NAME = 'h3alb-v42';
+const CACHE_NAME = 'h3alb-v44';
 const ASSETS = [
   './',
   './index.html',
@@ -13,7 +13,10 @@ const ASSETS = [
 self.addEventListener('install', e => {
   self.skipWaiting();
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    // addAll يفشل كله إذا فشل ملف واحد → نضيف كل ملف على حدة
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.all(ASSETS.map(a => cache.add(a).catch(() => {})))
+    )
   );
 });
 
@@ -28,22 +31,46 @@ self.addEventListener('activate', e => {
   );
 });
 
+/* الطلبات التي لا يجوز للـ SW أن يلمسها أبداً:
+   اتصال فايربيس الحيّ (long-polling / websocket) وواتساب.
+   كان الكود القديم يخزّن هذه الطلبات، وأخطر من ذلك: عند انقطاع النت يرجّع
+   محتوى index.html كجواب لطلب فايربيس → مكتبة فايربيس تتوهان والموقع يعلّق.
+   ملاحظة: تُفحَص بعد الخطوط والصور، لأن fonts.googleapis.com ينتهي
+   بـ googleapis.com ولازم يبقى مخزّناً حتى تشتغل الخطوط بدون نت. */
+function isLiveApi(url) {
+  const h = url.hostname;
+  return h.endsWith('firebaseio.com') ||
+         h.endsWith('firebasedatabase.app') ||
+         h.endsWith('googleapis.com') ||
+         h.endsWith('google-analytics.com') ||
+         h.endsWith('wa.me') ||
+         h.endsWith('whatsapp.com');
+}
+
+function isStaticAsset(url) {
+  return url.hostname.includes('fonts.googleapis.com') ||
+         url.hostname.includes('fonts.gstatic.com') ||
+         url.hostname.includes('unpkg.com') ||
+         /\.(webp|png|jpe?g|gif|avif|svg|woff2?)$/i.test(url.pathname);
+}
+
 // 3. Fetch - Smart Strategy
 self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
 
-  // Strategy A: Cache First for Fonts, Icons & Images (Static, rarely change)
-  // الصور والخطوط تُخدَم من الكاش مباشرة → سرعة وسلاسة وتوفير بيانات وتعمل أوفلاين.
-  if (url.hostname.includes('fonts.googleapis.com') ||
-      url.hostname.includes('fonts.gstatic.com') ||
-      url.hostname.includes('unpkg.com') ||
-      /\.(webp|png|jpe?g|gif|avif|svg|woff2?)$/i.test(url.pathname)) {
+  let url;
+  try { url = new URL(e.request.url); } catch (err) { return; }
+
+  // Strategy A: Cache First للصور والخطوط (ثابتة، سرعة وتوفير بيانات وتعمل أوفلاين)
+  if (isStaticAsset(url)) {
     e.respondWith(
       caches.match(e.request).then(cached => {
-        return cached || fetch(e.request).then(res => {
-          const resClone = res.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+        if (cached) return cached;
+        return fetch(e.request).then(res => {
+          if (res && (res.ok || res.type === 'opaque')) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone)).catch(() => {});
+          }
           return res;
         });
       })
@@ -51,15 +78,27 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Strategy B: Network First for HTML, JS, CSS (دائماً أحدث نسخة عند وجود نت)
-  // أونلاين → نجيب الجديد من الشبكة ونحدّث الكاش. أوفلاين → نرجع للكاش فيشتغل الموقع بدون نت.
+  // اتصال حيّ (فايربيس/واتساب) → للشبكة مباشرة بلا أي تدخّل من الكاش
+  if (isLiveApi(url)) return;
+
+  // Strategy B: Network First لملفات الموقع نفسه (HTML/CSS/JS)
+  // أونلاين → أحدث نسخة ونحدّث الكاش. أوفلاين → الكاش فيشتغل الموقع بدون نت.
+  if (url.origin !== self.location.origin) return;   // أي نطاق آخر: لا نتدخّل
+
   e.respondWith(
     fetch(e.request).then(res => {
-      const resClone = res.clone();
-      caches.open(CACHE_NAME).then(cache => cache.put(e.request, resClone));
+      if (res && res.ok) {
+        const clone = res.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone)).catch(() => {});
+      }
       return res;
     }).catch(() =>
-      caches.match(e.request).then(cached => cached || caches.match('./index.html'))
+      caches.match(e.request).then(cached => {
+        if (cached) return cached;
+        // بديل الصفحة الكاملة يُعطى فقط لطلبات تنقّل حقيقية، لا لأي ملف
+        if (e.request.mode === 'navigate') return caches.match('./index.html');
+        return Response.error();
+      })
     )
   );
 });

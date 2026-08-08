@@ -236,6 +236,17 @@ body > * {
 }
 .hdr-dot.on { opacity:1; transform:scale(1); }
 
+/* مجموعة أزرار الهيدر (سجل الطلبات + السلة) */
+.hdr-acts {
+  position: absolute;
+  top: 16px; left: 16px;
+  display: flex; align-items: center; gap: 8px;
+  z-index: 5;
+}
+.hdr-acts .hdr-btn { position: relative; top: auto; left: auto; }
+.hdr-btn-sm { width: 38px; height: 38px; border-radius: 12px; }
+.hdr-btn-sm i { font-size: 18px; }
+
 /* ─── 5. SEARCH ─── */
 .srch {
   background: transparent;
@@ -262,7 +273,7 @@ body > * {
 .srch-in i { color: var(--tan-dk); font-size: 17px; flex-shrink: 0; }
 .srch-in input {
   flex: 1; border: none; background: transparent;
-  font-family: var(--font-ui); font-size: 14px;
+  font-family: var(--font-ui); font-size: 16px;
   color: var(--ink); outline: none; text-align: right;
 }
 .srch-in input::placeholder { color: #c0a88a; }
@@ -687,6 +698,69 @@ body > * {
 .ic-add:active { transform: scale(.88); }
 .ic-add i { font-size: 14px; }
 
+/* ─── المفضلة: قلب على البطاقة ─── */
+.ic { position: relative; }
+.ic-fav {
+  position: absolute; top: 9px; right: 9px; z-index: 3;
+  width: 32px; height: 32px; border-radius: 50%;
+  border: none; cursor: pointer;
+  background: rgba(255, 250, 241, 0.92);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 3px 10px rgba(29, 23, 17, 0.18);
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+.ic-fav i { font-size: 15px; color: #c9bcae; transition: color .2s; }
+.ic-fav.on i { color: #e0364f; }
+.ic-fav.on { background: #fff; }
+.ic-fav:hover  { transform: scale(1.14); }
+.ic-fav:active { transform: scale(.9); }
+.ic-fav.on i { animation: favPop .32s cubic-bezier(.34,1.56,.64,1); }
+@keyframes favPop {
+  0% { transform: scale(1) }
+  45% { transform: scale(1.42) }
+  100% { transform: scale(1) }
+}
+
+/* ─── عدّاد الكمية على بطاقة المنيو ─── */
+.ic-ctl { display: flex; align-items: center; }
+.ic-step {
+  display: flex; align-items: center; gap: 4px;
+  background: linear-gradient(135deg, var(--red), var(--red-lt));
+  border-radius: 20px; padding: 3px;
+  box-shadow: 0 3px 10px rgba(111, 78, 55, 0.2);
+  animation: stepIn .26s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes stepIn {
+  from { opacity: 0; transform: scale(.72) }
+  to   { opacity: 1; transform: none }
+}
+.ic-sb {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: none; background: rgba(255,255,255,0.18); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: background .18s, transform .18s;
+}
+.ic-sb i { font-size: 12px; }
+.ic-sb:hover  { background: rgba(255,255,255,0.34); }
+.ic-sb:active { transform: scale(.86); }
+.ic-sn {
+  min-width: 20px; text-align: center;
+  color: #fff; font-size: 13.5px; font-weight: 800;
+  font-family: var(--font-num); letter-spacing: 0;
+}
+/* شارة العدد على زر + (أصناف الأركيلة والسمك) */
+.ic-add { position: relative; }
+.ic-add-n {
+  position: absolute; top: -5px; right: -5px;
+  min-width: 17px; height: 17px; padding: 0 4px;
+  background: var(--tan-dk); color: #fff;
+  border: 2px solid #fff; border-radius: 20px;
+  font-size: 9.5px; font-weight: 800; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-num); letter-spacing: 0;
+}
+
 /* ─── 11. CART DRAWER ─── */
 .dov {
   position:fixed; inset:0; z-index:400;
@@ -1104,16 +1178,33 @@ body > * {
   transition:transform .42s cubic-bezier(.16,1,.3,1);
   box-shadow:0 -12px 56px rgba(0,0,0,0.14);
   position:relative;
+  /* مهم: النموذج أطول من الشاشة (خانات العنوان + الهاتف + الملاحظات).
+     بدون هذين السطرين كان أعلى النموذج يُقص فوق الشاشة — خانة الاسم
+     تصير غير قابلة للوصول، وبالآيفون لما يفتح الكيبورد تسوء أكثر. */
+  max-height:88vh;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
 }
+/* dvh يحسب شريط المتصفح المتحرك بالجوال (آيفون/أندرويد) */
+@supports (max-height: 88dvh) {
+  .fmodal { max-height:88dvh; }
+}
+.fmodal::-webkit-scrollbar { width:4px; }
+.fmodal::-webkit-scrollbar-thumb { background:var(--bg2); border-radius:4px; }
 .fov.on .fmodal { transform:translateY(0); }
 
 .fm-title { font-family:var(--font-ui); font-size:20px; font-weight:800; color:var(--ink); margin-bottom:22px; text-align:center; }
 .fm-grp { margin-bottom:15px; }
 .fm-grp label { display:block; font-size:13.5px; font-weight:700; color:var(--ink); margin-bottom:7px; }
+/* ملاحظة مهمة للآيفون: سفاري يزوّم الصفحة تلقائياً عند الضغط على أي خانة
+   حجم خطها أقل من 16px، فتتزحزح الشاشة والكتابة تصير متعبة. لذلك كل خانات
+   الكتابة 16px على الأقل — هذا الحل الوحيد الموثوق (maximum-scale يتجاهله
+   الآيفون منذ iOS 10). */
 .fm-grp input, .fm-grp select {
   width:100%; padding:13px 16px; border-radius:14px;
   border:1.5px solid #e8e0d8; background: var(--bg);
-  font-family:var(--font-ui); font-size:14.5px; color:var(--ink);
+  font-family:var(--font-ui); font-size:16px; color:var(--ink);
   outline:none; transition:border-color .22s, box-shadow .22s;
 }
 .fm-grp input:focus, .fm-grp select:focus {
@@ -1141,6 +1232,181 @@ body > * {
 }
 .fm-submit:hover  { background:#20ba56; transform:translateY(-3px); box-shadow:0 14px 36px rgba(37,211,102,0.42); }
 .fm-submit:active { transform:scale(.97); }
+
+/* ملاحظات الطلب */
+.fm-grp textarea {
+  width:100%; padding:13px 16px; border-radius:14px;
+  border:1.5px solid #e8e0d8; background: var(--bg);
+  font-family:var(--font-ui); font-size:16px; color:var(--ink);
+  outline:none; resize:vertical; min-height:58px; line-height:1.6;
+  transition:border-color .22s, box-shadow .22s;
+}
+.fm-grp textarea:focus {
+  border-color:var(--red); background: var(--white);
+  box-shadow:0 0 0 3px rgba(17,17,17,0.08);
+}
+
+/* تنبيه الخانة الناقصة عند التحقق */
+.fm-err {
+  border-color:#e84343 !important;
+  box-shadow:0 0 0 3px rgba(232,67,67,0.16) !important;
+  animation:fmShake .34s ease;
+}
+@keyframes fmShake {
+  0%,100% { transform:translateX(0) }
+  25% { transform:translateX(-5px) }
+  75% { transform:translateX(5px) }
+}
+
+/* شريط "معلوماتك محفوظة" */
+.fm-saved {
+  display:flex; align-items:center; gap:8px;
+  margin-bottom:16px; padding:10px 13px;
+  background:rgba(37,211,102,0.09);
+  border:1.5px solid rgba(37,211,102,0.3);
+  border-radius:13px;
+  font-size:12.5px; font-weight:700; color:#1c7a44;
+}
+.fm-saved i { font-size:16px; flex-shrink:0; }
+.fm-saved span { flex:1; min-width:0; line-height:1.5; }
+.fm-saved.is-warn {
+  background:rgba(212,170,98,0.13);
+  border-color:rgba(184,135,70,0.34);
+  color:var(--tan-dk);
+}
+.fm-saved-clear {
+  border:none; background:transparent; cursor:pointer; flex-shrink:0;
+  font-family:var(--font-ui); font-size:11.5px; font-weight:800;
+  color:#c0392b; text-decoration:underline; padding:2px 4px;
+}
+.fm-saved-clear:hover { color:#8e2a20; }
+
+/* احفظ معلوماتي */
+.fm-remember {
+  display:flex; align-items:center; gap:9px;
+  margin:4px 0 2px; cursor:pointer;
+  font-size:13px; font-weight:600; color:var(--sub);
+}
+.fm-remember input { width:18px; height:18px; accent-color:var(--red); cursor:pointer; flex-shrink:0; }
+
+/* ملخّص الطلب داخل نافذة الإكمال */
+.fm-sum {
+  margin-top:14px; padding:14px 16px;
+  background:var(--bg); border-radius:16px;
+  border:1.5px solid #efe6dc;
+}
+.fm-sum-row {
+  display:flex; justify-content:space-between; align-items:center;
+  font-size:13px; font-weight:600; color:var(--sub);
+  padding:3px 0; font-family:var(--font-num); letter-spacing:0;
+}
+.fm-sum-total {
+  margin-top:7px; padding-top:9px;
+  border-top:1.5px dashed #e2d6c8;
+  font-size:15.5px; font-weight:800; color:var(--red);
+}
+
+/* ─── ملاحظة على صنف داخل السلة ─── */
+.citem-wrap { border-bottom:1px solid #f5eeea; }
+.citem-wrap .citem { border-bottom:none; padding-bottom:6px; }
+
+.cnote-row {
+  display:flex; align-items:center; gap:8px;
+  padding:0 0 10px 64px; flex-wrap:wrap;
+}
+.cnote-btn {
+  background:transparent; border:1.5px dashed #ddd0c2;
+  border-radius:10px; padding:5px 11px; cursor:pointer;
+  font-family:var(--font-ui); font-size:11.5px; font-weight:700;
+  color:#8a7863; display:inline-flex; align-items:center; gap:5px;
+  transition:all .2s;
+}
+.cnote-btn i { font-size:13px; }
+.cnote-btn:hover { border-color:var(--tan); color:var(--tan-dk); background:var(--bg); }
+.cnote-btn.on { border-style:solid; border-color:var(--tan); color:var(--tan-dk); background:var(--bg); }
+.cnote-txt {
+  font-size:11.5px; color:var(--tan-dk); font-weight:600;
+  background:var(--bg); padding:4px 9px; border-radius:8px;
+  border-right:2.5px solid var(--tan-lt);
+  max-width:100%; overflow-wrap:anywhere;
+}
+
+.cnote-edit { display:flex; gap:7px; padding:0 0 12px 64px; }
+.cnote-edit input {
+  flex:1; min-width:0; padding:9px 13px; border-radius:11px;
+  border:1.5px solid #e8e0d8; background:var(--bg);
+  font-family:var(--font-ui); font-size:16px; color:var(--ink); outline:none;
+}
+.cnote-edit input:focus { border-color:var(--tan); background:var(--white); }
+.cnote-ok {
+  width:38px; border:none; border-radius:11px; cursor:pointer;
+  background:linear-gradient(135deg, var(--tan), var(--tan-lt)); color:#fff;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.cnote-ok i { font-size:15px; }
+.cnote-ok:active { transform:scale(.93); }
+
+/* ─── سجل الطلبات السابقة ─── */
+.oh-card {
+  background:var(--bg); border:1.5px solid #efe6dc;
+  border-radius:18px; padding:14px 15px; margin-bottom:13px;
+  animation:cIn .32s both;
+}
+.oh-top {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  gap:10px; margin-bottom:10px;
+}
+.oh-no {
+  font-size:14px; font-weight:800; color:var(--ink);
+  font-family:var(--font-num); letter-spacing:0;
+}
+.oh-date { font-size:11.5px; color:#8a7863; font-weight:600; margin-top:2px; }
+.oh-total {
+  font-size:15px; font-weight:800; color:var(--red);
+  font-family:var(--font-num); letter-spacing:0; white-space:nowrap;
+}
+.oh-lines {
+  border-top:1px dashed #e2d6c8; padding-top:9px;
+  display:flex; flex-direction:column; gap:4px;
+}
+.oh-line {
+  display:flex; justify-content:space-between; gap:10px;
+  font-size:12.5px; color:var(--sub); font-weight:600;
+  font-family:var(--font-num); letter-spacing:0;
+}
+.oh-line span:first-child { min-width:0; overflow-wrap:anywhere; }
+.oh-note {
+  margin-top:9px; font-size:11.5px; color:var(--tan-dk); font-weight:600;
+  background:rgba(212,170,98,0.12); padding:7px 10px; border-radius:9px;
+  display:flex; align-items:flex-start; gap:6px; overflow-wrap:anywhere;
+}
+.oh-note i { font-size:13px; flex-shrink:0; margin-top:1px; }
+.oh-again {
+  width:100%; margin-top:12px; padding:11px;
+  border:none; border-radius:13px; cursor:pointer;
+  background:linear-gradient(135deg, var(--red), var(--red-lt)); color:#fff;
+  font-family:var(--font-ui); font-size:13.5px; font-weight:800;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+  box-shadow:0 6px 18px rgba(111,78,55,0.2);
+  transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s;
+}
+.oh-again i { font-size:16px; }
+.oh-again:hover  { transform:translateY(-2px); box-shadow:0 10px 24px rgba(111,78,55,0.28); }
+.oh-again:active { transform:scale(.97); }
+
+/* زر تصفّح المنيو في السلة الفارغة */
+.d-browse {
+  margin-top:14px; padding:12px 26px;
+  border:none; border-radius:14px; cursor:pointer;
+  background:linear-gradient(135deg, var(--tan), var(--tan-lt));
+  color:#fff; font-family:var(--font-ui); font-size:14px; font-weight:800;
+  display:inline-flex; align-items:center; gap:8px;
+  box-shadow:0 8px 22px rgba(157,106,63,0.28);
+  transition:transform .2s cubic-bezier(.16,1,.3,1), box-shadow .2s;
+}
+.d-browse i { font-size:16px; color:#fff; }
+.d-browse:hover  { transform:translateY(-2px); box-shadow:0 12px 28px rgba(157,106,63,0.36); }
+.d-browse:active { transform:scale(.96); }
 
 .fm-close {
   position:absolute; top:20px; left:20px;
