@@ -1974,11 +1974,27 @@
         const el = document.getElementById(id);
         if (!el) return;
         const ev = el.tagName === 'SELECT' ? 'change' : 'input';
+        // نحفظ بهدوء فقط. ممنوع تحديث شريط "معلوماتك محفوظة" هنا:
+        // ظهوره أثناء الكتابة يزيح كل الخانات تحته فتقفز الخانة التي
+        // يكتب فيها الزبون. الشريط يُحدَّث عند فتح النموذج فقط.
         el.addEventListener(ev, () => {
           clearTimeout(custSaveTimer);
-          custSaveTimer = setTimeout(() => { saveCustomer(); renderCustStatus(); }, 500);
+          custSaveTimer = setTimeout(saveCustomer, 500);
         });
       });
+
+      /* بالآيفون الكيبورد يغطي نصف الشاشة، والخانة التي يكتب فيها الزبون
+         تنحجب وراه. نضمن ظهورها بعد ما يستقر الكيبورد. */
+      const form = document.querySelector('.fmodal');
+      if (form) {
+        form.addEventListener('focusin', e => {
+          const t = e.target;
+          if (!t.matches('input, textarea, select')) return;
+          setTimeout(() => {
+            t.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          }, 320);
+        });
+      }
 
       const rem = document.getElementById('custRemember');
       if (rem) rem.addEventListener('change', () => {
@@ -2389,25 +2405,48 @@
       );
     }
 
-    /* ── SWIPE TO CLOSE ── */
+    /* ── SWIPE TO CLOSE ──
+       كان الحرس يفحص .d-body فقط، وباقي النوافذ ما عندها هذا العنصر —
+       فأي سحب للأسفل داخلها يجرّ الورقة كلها بدل ما يمرّر المحتوى،
+       وإذا زاد عن ١٢٠ بكسل تنسكّر النافذة والزبون بس كان يريد يمرّر. */
+    function scrollableAt(node, stopAt) {
+      while (node && node !== stopAt && node.nodeType === 1) {
+        if (node.scrollHeight > node.clientHeight + 1) {
+          const oy = getComputedStyle(node).overflowY;
+          if (oy === 'auto' || oy === 'scroll') return node;
+        }
+        node = node.parentNode;
+      }
+      return null;
+    }
+
     function initSwipe(elId, closeFunc) {
       const el = document.getElementById(elId);
+      if (!el || !el.children[0]) return;
       const content = el.children[0];
       let startY = 0, currentY = 0;
+
       content.addEventListener('touchstart', e => {
-        const target = e.target;
-        if (target.closest('.d-body') && target.closest('.d-body').scrollHeight > target.closest('.d-body').clientHeight) {
-          if (target.closest('.d-body').scrollTop > 0) return;
-        }
+        startY = 0;
+        if (e.touches.length > 1) return;
+        const t = e.target;
+        // داخل خانة كتابة أو زر؟ ما نسحب الورقة أبداً
+        if (t.closest && t.closest('input, textarea, select, button, a')) return;
+        // داخل محتوى قابل للتمرير ولم يوصل لأعلاه؟ خلّه يمرّر بحرية
+        const sc = scrollableAt(t, content.parentNode);
+        if (sc && sc.scrollTop > 0) return;
         startY = e.touches[0].clientY;
+        currentY = startY;
         content.style.transition = 'none';
       }, { passive: true });
+
       content.addEventListener('touchmove', e => {
         if (startY === 0) return;
         currentY = e.touches[0].clientY;
         const diff = currentY - startY;
         if (diff > 0) content.style.transform = `translateY(${diff}px)`;
       }, { passive: true });
+
       content.addEventListener('touchend', () => {
         if (startY === 0) return;
         const diff = currentY - startY;
