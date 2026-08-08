@@ -37,10 +37,15 @@
       <h1 class="hdr-title-ar">مقهى أبو حالوب</h1>
       <h2 class="hdr-title-en">Abo Haloub Cafe</h2>
     </div>
-    <button class="hdr-btn" onclick="openDrawer()" aria-label="سلة الطلبات">
-      <i class="ph-bold ph-shopping-cart-simple"></i>
-      <span class="hdr-dot" id="hdrDot">0</span>
-    </button>
+    <div class="hdr-acts">
+      <button class="hdr-btn hdr-btn-sm" onclick="openOrders()" aria-label="طلباتي السابقة" id="hdrOrders">
+        <i class="ph-bold ph-clock-counter-clockwise"></i>
+      </button>
+      <button class="hdr-btn" onclick="openDrawer()" aria-label="سلة الطلبات">
+        <i class="ph-bold ph-shopping-cart-simple"></i>
+        <span class="hdr-dot" id="hdrDot">0</span>
+      </button>
+    </div>
   </header>
 
   <!-- WORKING HOURS BAR (يظهر أوقات العمل وحالة المطعم) -->
@@ -84,19 +89,25 @@
           تواجدكم يضيف لنا التميز.. شكراً لثقتكم الدائمة ❤️</p>
       </div>
 
+      <!-- مفضلاتي — تظهر تلقائياً عند حفظ الزبون لأي صنف -->
+      <div class="fav-sec" id="favSec" style="display:none">
+        <div class="sec-h"><i class="ph-fill ph-heart"></i> مفضلاتي</div>
+        <div class="grid" id="favG"></div>
+      </div>
+
       <!-- أمسياتنا (Events) — تظهر تلقائياً عند إضافتها من لوحة الإدارة -->
       <div class="ev-sec" id="evSec" style="display:none">
         <div class="sec-h"><i class="ph-bold ph-confetti"></i> أمسياتنا</div>
         <div class="ev-wrap" id="evWrap"></div>
       </div>
 
-      <div class="sec-h">المميزات</div>
+      <div class="sec-h" id="featHead">المميزات</div>
       <div class="feat-wrap" id="featWrap">
         <div class="feat-s" id="featS"></div>
         <div class="dots" id="dots"></div>
       </div>
-      <div class="ornament">✦ ✦ ✦</div>
-      <div class="sec-h">الأكثر طلباً</div>
+      <div class="ornament" id="featOrn">✦ ✦ ✦</div>
+      <div class="sec-h" id="popHead">الأكثر طلباً</div>
       <div class="grid" id="popG"></div>
     </section>
 
@@ -126,6 +137,10 @@
           <span class="d-row-val" id="dCount">—</span>
         </div>
         <div class="d-row">
+          <span class="d-row-lbl">مجموع الأصناف</span>
+          <span class="d-row-val" id="dSub">0 د.ع</span>
+        </div>
+        <div class="d-row">
           <span class="d-row-lbl">الضريبة</span>
           <span class="d-row-val">مشمولة</span>
         </div>
@@ -145,6 +160,18 @@
           <i class="ph-bold ph-trash-simple"></i> مسح السلة
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ORDERS HISTORY DRAWER (طلباتي السابقة) -->
+  <div class="dov" id="oov" onclick="closeOrdersOv(event)">
+    <div class="drawer">
+      <div class="d-handle"></div>
+      <div class="d-hdr">
+        <div class="d-title"><i class="ph-fill ph-clock-counter-clockwise"></i> طلباتي السابقة</div>
+        <button class="d-close" onclick="closeOrders()"><i class="ph-bold ph-x"></i></button>
+      </div>
+      <div class="d-body" id="oBody"></div>
     </div>
   </div>
 
@@ -252,6 +279,7 @@
     <div class="fmodal" id="fmodal-content">
       <button class="fm-close" onclick="closeForm()"><i class="ph-bold ph-x"></i></button>
       <div class="fm-title">إكمال الطلب 📝</div>
+      <div class="fm-saved" id="custStatus" style="display:none"></div>
       <div class="fm-grp">
         <label>الفرع</label>
         <select id="custBranch" onchange="updateBranchInfo(this.value)">
@@ -297,8 +325,18 @@
       </div>
       <div class="fm-grp">
         <label>رقم الهاتف <span style="color:#c0392b">*</span></label>
-        <input type="tel" id="custPhone" placeholder="07xxxxxxxxx" dir="ltr" style="text-align:right">
+        <input type="tel" id="custPhone" placeholder="07xxxxxxxxx" inputmode="numeric" maxlength="11" dir="ltr" style="text-align:right">
       </div>
+      <div class="fm-grp">
+        <label>ملاحظات على الطلب <small style="opacity:.65">(اختياري)</small></label>
+        <textarea id="custNotes" rows="2" maxlength="300"
+          placeholder="مثال: بدون بصل، الأكل حار، اتصل عند الوصول..."></textarea>
+      </div>
+      <label class="fm-remember">
+        <input type="checkbox" id="custRemember" checked>
+        <span>احفظ معلوماتي للطلبات القادمة</span>
+      </label>
+      <div class="fm-sum" id="fmSum"></div>
       <button class="fm-submit" onclick="sendOrder()">
         <i class="ph-bold ph-whatsapp-logo" style="font-size:22px"></i> إرسال الطلب عبر واتساب
       </button>
@@ -376,20 +414,15 @@
 
       const dbRef = firebase.database().ref('h3alb_menu');
 
-      // Use 'once' first for a fast single fetch to save data/bandwidth
-      dbRef.once('value').then(snap => {
-        const data = snap.val();
-        if (data) loadFromData(data);
-      }).catch(err => console.log('Firebase offline, using local data.'));
-
-      // Then listen for changes silently
+      // مستمع واحد يكفي: يعطينا البيانات أول مرة ثم أي تعديل من لوحة الإدارة.
+      // (كان قبله نداء once إضافي = طلب شبكة ورسم كامل مضاعف بلا فائدة)
       dbRef.on('value', snap => {
         const data = snap.val();
-        if (data) loadFromData(data);
-      });
+        if (data) loadFromData(data, true);   // true = بيانات سحابة موثوقة
+      }, err => console.log('Firebase offline, using local data.'));
     }
 
-    function loadFromData(data) {
+    function loadFromData(data, fromCloud = false) {
       // Robustness check: if data is empty or missing items, try to fallback to initialData
       let finalData = data;
       const hasItems = data && data.items && (Array.isArray(data.items) ? data.items.length > 0 : Object.keys(data.items).length > 0);
@@ -397,6 +430,7 @@
       if (!hasItems && typeof initialData !== 'undefined') {
         console.warn('Fetched data has no items, falling back to initialData');
         finalData = initialData;
+        fromCloud = false;   // رجعنا للنسخة المحلية: ما نحذف من سلة الزبون بناءً عليها
       }
 
       // Load Categories
@@ -423,11 +457,32 @@
       HOURS = (finalData.settings && finalData.settings.hours) ? finalData.settings.hours : HOURS;
       applyFishSettings(finalData.settings && finalData.settings.fish);
 
+      // إعادة بناء الواجهة عملية ثقيلة. فايربيس يرسل نفس البيانات أكثر من مرة
+      // (once + on)، فإن لم يتغيّر شيء فعلياً لا نعيد الرسم — هذا يمنع تعليق الموقع.
+      const sig = dataSignature();
+      if (sig === lastRenderSig) { syncCartWithDB(fromCloud); return; }
+      lastRenderSig = sig;
+
       renderLiveUI();
       populate();
       renderEvents();
       renderHours();
+      renderFavSection();
+      syncCartWithDB(fromCloud);
+      restoreLastSection();
       setTimeout(initReveal, 100);
+    }
+
+    // بصمة مختصرة للبيانات المعروضة: أي تغيير حقيقي يغيّرها
+    let lastRenderSig = '';
+    function dataSignature() {
+      const catSig = CATS.map(c => `${c.id}|${c.name}|${catRank(c)}`).join(';');
+      const itemSig = Object.keys(DB).map(k =>
+        k + '#' + DB[k].map(i => `${i.id}:${i.name}:${i.price}:${i.img || ''}:${i.badge || ''}:${i.desc || ''}`).join(',')
+      ).join('~');
+      const evSig = (EVENTS || []).map(e => `${e.name}|${e.desc || ''}|${e.img || ''}`).join(';');
+      const hrSig = HOURS ? `${HOURS.enabled}|${HOURS.open}|${HOURS.close}` : '';
+      return catSig + '||' + itemSig + '||' + evSig + '||' + hrSig;
     }
 
     /* ══════════════════════════════
@@ -514,11 +569,22 @@
       if (!hoursTimer) hoursTimer = setInterval(renderHours, 60000);
     }
 
+    let lastLayoutSig = '';
     function renderLiveUI() {
-      // 1. Render Tabs
       const tabContainer = document.querySelector('.tabs-s');
+      const vp = document.getElementById('mainVp');
+      const homeSec = document.getElementById('home');
+      if (!tabContainer || !vp || !homeSec) return;
+
+      // هيكل الأقسام نفسه (الأسماء والترتيب) قلّ ما يتغيّر. إعادة بنائه في كل
+      // تحديث من فايربيس كانت تهدم كل الصفحة وتضيّع البحث ومستمعات الأحداث.
+      const layoutSig = CATS.map(c => safeDomId(c.id) + '|' + c.name).join(';');
+      if (layoutSig === lastLayoutSig && tabContainer.querySelector('.tb')) return;
+      lastLayoutSig = layoutSig;
+
       const currentOn = tabContainer.querySelector('.tb.on')?.dataset?.target || 'home';
 
+      // 1. التبويبات
       let tabHtml = `<button class="tb ${currentOn === 'home' ? 'on' : ''}" data-target="home" onclick="goTab('home',this)">الرئيسية</button>`;
       CATS.forEach(c => {
         const sid = safeDomId(c.id);
@@ -526,29 +592,27 @@
       });
       tabContainer.innerHTML = tabHtml;
 
-      // 2. Render Sections (Viewport)
-      const vp = document.getElementById('mainVp');
-      const homeSec = document.getElementById('home');
+      // 2. الأقسام — نحذف أقسام الأصناف فقط ونبني الجديدة داخل fragment
+      //    (تعديل واحد على الصفحة)، وقسم الرئيسية يبقى كما هو ولا يُهدم.
+      Array.from(vp.children).forEach(ch => { if (ch !== homeSec) ch.remove(); });
+      renderedCats.clear();
 
-      // Preserve home but clear everything else
-      let vpChildHtml = homeSec.outerHTML;
+      const frag = document.createDocumentFragment();
       CATS.forEach(c => {
         const sid = safeDomId(c.id);
-        vpChildHtml += `
-          <section id="${attr(sid)}" class="sec">
-            <div class="sec-h">${esc(c.name)}</div>
-            <div class="grid" id="${attr(sid)}G"></div>
-          </section>
-        `;
+        const sec = document.createElement('section');
+        sec.id = sid;
+        sec.className = 'sec';
+        sec.dataset.cat = c.id;
+        sec.innerHTML = `<div class="sec-h">${esc(c.name)}</div><div class="grid" id="${attr(sid)}G"></div>`;
+        frag.appendChild(sec);
       });
-      vp.innerHTML = vpChildHtml;
-      const activeSec = document.getElementById(currentOn) || document.getElementById('home');
+      vp.appendChild(frag);
+
+      const activeSec = document.getElementById(currentOn) || homeSec;
       if (activeSec) activeSec.classList.add('sec-active');
 
-      // Re-observe sections for tab switching
-      setTimeout(() => {
-        document.querySelectorAll('.sec').forEach(s => secObs.observe(s));
-      }, 100);
+      document.querySelectorAll('.sec').forEach(s => secObs.observe(s));
     }
 
     const FEAT = [
@@ -558,7 +622,210 @@
       { id: 4002, name: 'بركر لحم بالجبن', tag: 'برجر كلاسيكي بالجبنة السائحة', price: 6500, col: 'linear-gradient(135deg,#1a2b32,#b88746)' }
     ];
 
-    let cart = [];
+    /* ══════════════════════════════════════════════════════════
+       STORE — طبقة الذاكرة على جهاز الزبون
+       كل شيء يُحفظ تحت مسمّى واحد (h3alb:*) بنسخة ووقت، حتى نقدر
+       نطوّر الشكل مستقبلاً بدون ما نخرب ذاكرة الزبائن القدماء.
+       تتحمّل: التخزين المرفوض (وضع التصفح الخاص)، الذاكرة الممتلئة،
+       والبيانات المعطوبة — بدون ما يطيح الموقع.
+    ══════════════════════════════════════════════════════════ */
+    const Store = {
+      NS: 'h3alb:',
+      VER: 2,
+      ok: true,                                   // هل التخزين متاح على هذا الجهاز؟
+
+      k(key) { return this.NS + key; },
+
+      get(key, fallback = null) {
+        if (!this.ok) return fallback;
+        try {
+          const raw = localStorage.getItem(this.k(key));
+          if (!raw) return fallback;
+          const box = JSON.parse(raw);
+          if (!box || typeof box !== 'object' || !('v' in box)) return fallback;
+          if (box.ttl && Date.now() - (box.at || 0) > box.ttl) { this.del(key); return fallback; }
+          return box.v;
+        } catch (e) { this.del(key); return fallback; }
+      },
+
+      // ttl بالمللي ثانية (اختياري) — بعده تُعتبر القيمة منتهية
+      set(key, val, ttl = 0) {
+        if (!this.ok) return false;
+        const box = JSON.stringify({ ver: this.VER, at: Date.now(), ttl, v: val });
+        try {
+          localStorage.setItem(this.k(key), box);
+          return true;
+        } catch (e) {
+          // الذاكرة ممتلئة: نرمي أقل شيء أهمية (سجل الطلبات) ونحاول مرة أخرى
+          try {
+            localStorage.removeItem(this.k('orders'));
+            localStorage.setItem(this.k(key), box);
+            return true;
+          } catch (e2) { this.ok = false; return false; }
+        }
+      },
+
+      del(key) { try { localStorage.removeItem(this.k(key)); } catch (e) {} },
+
+      // آخر وقت تعديل لمفتاح (نستخدمه لاستعادة آخر قسم بذكاء)
+      stamp(key) {
+        try {
+          const box = JSON.parse(localStorage.getItem(this.k(key)) || 'null');
+          return box && box.at ? box.at : 0;
+        } catch (e) { return 0; }
+      },
+
+      // فحص حقيقي للتخزين + ترقية المفاتيح القديمة
+      init() {
+        try {
+          localStorage.setItem(this.NS + '__t', '1');
+          localStorage.removeItem(this.NS + '__t');
+        } catch (e) { this.ok = false; return; }
+
+        // ترقية من مفاتيح النسخة الأولى إلى الشكل الموحّد
+        const legacy = [
+          ['h3alb_cart_v1', 'cart', o => (o && Array.isArray(o.items)) ? o.items : null],
+          ['h3alb_customer_v1', 'customer', o => (o && typeof o === 'object') ? o : null]
+        ];
+        legacy.forEach(([oldKey, newKey, pick]) => {
+          try {
+            const raw = localStorage.getItem(oldKey);
+            if (!raw) return;
+            if (localStorage.getItem(this.k(newKey)) === null) {
+              const val = pick(JSON.parse(raw));
+              if (val) this.set(newKey, val, newKey === 'cart' ? CART_TTL : 0);
+            }
+            localStorage.removeItem(oldKey);
+          } catch (e) { try { localStorage.removeItem(oldKey); } catch (e2) {} }
+        });
+      }
+    };
+
+    const CART_TTL = 12 * 60 * 60 * 1000;   // تنتهي صلاحية السلة بعد ١٢ ساعة
+    const MAX_ORDERS = 10;                  // نحفظ آخر ١٠ طلبات فقط
+    const MAX_QTY = 99;
+
+    Store.init();
+
+    /* ── السلة ── */
+    function loadCart() {
+      const items = Store.get('cart', []);
+      if (!Array.isArray(items)) return [];
+      return items
+        .filter(c => c && c.id != null && c.name && Number.isFinite(Number(c.price)))
+        .map(c => ({
+          ...c,
+          price: Number(c.price),
+          qty: Math.max(1, Math.min(MAX_QTY, Number(c.qty) || 1)),
+          note: typeof c.note === 'string' ? c.note.slice(0, 140) : ''
+        }));
+    }
+
+    // نمنع الكتابة أثناء تطبيق تغيير جاء من تبويب ثاني (وإلا صار تراسل لا ينتهي)
+    let applyingRemote = false;
+    function saveCart() {
+      if (applyingRemote) return;
+      if (!cart.length) { Store.del('cart'); return; }
+      Store.set('cart', cart, CART_TTL);
+    }
+
+    /* ── مزامنة التبويبات ──
+       الزبون فاتح الموقع بتبويبين؟ أي إضافة بتبويب تظهر بالثاني فوراً،
+       حتى لا يرسل طلباً ناقصاً من تبويب قديم. */
+    window.addEventListener('storage', e => {
+      if (!e.key) return;
+      if (e.key === Store.k('cart')) {
+        applyingRemote = true;
+        cart = loadCart();
+        updateUI();
+        renderDrawer();
+        syncAllCardQty();
+        applyingRemote = false;
+      } else if (e.key === Store.k('favs')) {
+        favs = loadFavs();
+        syncAllFavs();
+        renderFavSection();
+      }
+    });
+
+    /* بعد وصول المنيو: نحدّث أسعار/أسماء سطور السلة المحفوظة.
+       الحذف (allowPrune) يصير فقط مع بيانات السحابة، لأن النسخة المحلية
+       المرفقة بالملف قديمة وناقصة أصنافاً — لو حذفنا بناءً عليها تضيع
+       سلة الزبون بأصناف موجودة فعلاً بالمنيو الحقيقي. */
+    function syncCartWithDB(allowPrune = false) {
+      if (!cart.length) return;
+      const items = all();
+      if (!items.length) return;   // المنيو لم يوصل بعد: لا نلمس السلة
+      const before = cart.length;
+      cart = cart.filter(c => {
+        const baseId = c.baseId != null ? c.baseId : c.id;
+        const base = items.find(i => String(i.id) === String(baseId));
+        if (!base) return !allowPrune;            // غير موجود: نحذفه فقط مع بيانات السحابة
+        if (c.baseId == null) {                   // سطر عادي: نحدّث الاسم والسعر من المنيو
+          c.name = base.name;
+          c.price = Number(base.price) || c.price;
+          c.img = base.img;
+          c.cat = base.cat;
+        }
+        return true;
+      });
+      if (cart.length !== before) showToast('حدّثنا سلتك حسب المنيو الحالي');
+      updateUI();
+      if (document.getElementById('dov').classList.contains('on')) renderDrawer();
+    }
+
+    /* ══════════════════════════════
+       المفضلة — الزبون يحفظ أطباقه ويرجع لها بضغطة
+    ══════════════════════════════ */
+    function loadFavs() {
+      const v = Store.get('favs', []);
+      return new Set(Array.isArray(v) ? v.map(String) : []);
+    }
+    function saveFavs() {
+      if (applyingRemote) return;
+      Store.set('favs', Array.from(favs));
+    }
+    function isFav(id) { return favs.has(String(id)); }
+
+    function toggleFav(id, ev) {
+      if (ev) { ev.stopPropagation(); }
+      const key = String(id);
+      const item = getItem(key);
+      if (favs.has(key)) { favs.delete(key); showToast('انحذف من المفضلة'); }
+      else { favs.add(key); showToast('تمت إضافة ' + (item ? item.name : 'الصنف') + ' للمفضلة ❤️'); }
+      saveFavs();
+      syncAllFavs();
+      renderFavSection();
+    }
+
+    // نحدّث كل أزرار القلب الظاهرة بدون إعادة رسم البطاقات
+    function syncAllFavs() {
+      document.querySelectorAll('.ic-fav').forEach(btn => {
+        btn.classList.toggle('on', isFav(btn.dataset.favFor));
+      });
+    }
+
+    /* ══════════════════════════════
+       سجل الطلبات — يشوف طلباته السابقة ويعيد أي طلب بضغطة
+    ══════════════════════════════ */
+    function loadOrders() {
+      const v = Store.get('orders', []);
+      return Array.isArray(v) ? v : [];
+    }
+    function saveOrders(list) { Store.set('orders', list.slice(0, MAX_ORDERS)); }
+
+    // رقم طلب قصير يقدر الزبون يذكره بالتلفون: اليوم + تسلسل
+    function nextOrderNo() {
+      const n = (Store.get('orderSeq', 0) || 0) + 1;
+      Store.set('orderSeq', n);
+      const d = new Date();
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${mm}${dd}-${String(n).padStart(3, '0')}`;
+    }
+
+    let cart = loadCart();
+    let favs = loadFavs();
     const DELIVERY_FEE = 1000; // أجور التوصيل: ألف دينار عراقي تُضاف عند الطلب أونلاين
     let modalItem = null;
     let flavorItem = null;    // الصنف الذي ينتظر اختيار الطعم
@@ -796,6 +1063,33 @@
       else el.style.display = 'none';
     }
 
+    /* مجموع كمية الصنف بالسلة — يجمع كل سطوره (نكهات/أوزان مختلفة) */
+    function cartQtyOf(id) {
+      const key = String(id);
+      return cart.reduce((s, c) => {
+        const base = c.baseId != null ? String(c.baseId) : String(c.id);
+        return base === key ? s + c.qty : s;
+      }, 0);
+    }
+
+    /* زر الإضافة على البطاقة: يتحوّل لعدّاد (− ٢ +) إذا الصنف بالسلة.
+       أصناف الأركيلة والسمك تبقى بزر + لأن كل نكهة/وزن سطر مستقل،
+       فنعرض عدداً فقط ونفتح نافذة الاختيار عند الضغط. */
+    function addCtlHtml(item) {
+      const qty = cartQtyOf(item.id);
+      const picker = needsFish(item) || needsFlavor(item);
+      if (qty > 0 && !picker) {
+        return `<div class="ic-step">
+          <button class="ic-sb" onclick="event.stopPropagation();stepCard('${jsArg(item.id)}',-1)" aria-label="أنقص"><i class="ph-bold ph-minus"></i></button>
+          <span class="ic-sn">${money(qty)}</span>
+          <button class="ic-sb" onclick="event.stopPropagation();stepCard('${jsArg(item.id)}',1)" aria-label="زد"><i class="ph-bold ph-plus"></i></button>
+        </div>`;
+      }
+      return `<button class="ic-add" onclick="event.stopPropagation();qadd('${jsArg(item.id)}',this)" aria-label="أضف ${attr(item.name)}">
+        <i class="ph-bold ph-plus"></i>${qty > 0 ? `<span class="ic-add-n">${money(qty)}</span>` : ''}
+      </button>`;
+    }
+
     function rCard(item, delay = 0) {
       const inlineBadge = bdgInline(item.badge);
       const imgUrl = resolveImg(item);
@@ -804,6 +1098,10 @@
         : '';
 
       return `<div class="ic" style="--reveal-delay:${delay}s;" onclick="openModal('${jsArg(item.id)}')">
+        <button class="ic-fav${isFav(item.id) ? ' on' : ''}" data-fav-for="${attr(item.id)}"
+          onclick="toggleFav('${jsArg(item.id)}',event)" aria-label="أضف ${attr(item.name)} للمفضلة">
+          <i class="ph-fill ph-heart"></i>
+        </button>
         ${imgHtml}
         <div class="ic-body">
           ${inlineBadge}
@@ -811,12 +1109,50 @@
           <div class="ic-desc">${esc(item.desc || '')}</div>
           <div class="ic-foot">
             <span class="ic-price">${money(item.price)} د.ع</span>
-            <button class="ic-add" onclick="event.stopPropagation();qadd('${jsArg(item.id)}',this)" aria-label="أضف ${attr(item.name)}">
-              <i class="ph-bold ph-plus"></i>
-            </button>
+            <span class="ic-ctl" data-ctl-for="${attr(item.id)}">${addCtlHtml(item)}</span>
           </div>
         </div>
       </div>`;
+    }
+
+    /* زيادة/إنقاص من البطاقة نفسها بدون فتح السلة */
+    function stepCard(id, d) {
+      const line = cart.find(c => String(c.id) === String(id));
+      if (d > 0) {
+        if (line) { line.qty = Math.min(MAX_QTY, line.qty + 1); updateUI(); renderDrawer(); syncCardQty(id); }
+        else addToCart(id, true);
+        return;
+      }
+      if (!line) return;
+      if (line.qty > 1) line.qty--;
+      else cart = cart.filter(c => String(c.id) !== String(id));
+      updateUI(); renderDrawer(); syncCardQty(id);
+    }
+
+    // نحدّث عدّاد بطاقة واحدة فقط (أرخص بكثير من إعادة رسم القسم)
+    function syncCardQty(id) {
+      const item = getItem(id) || cart.find(c => String(c.id) === String(id));
+      if (!item) return;
+      const baseId = item.baseId != null ? item.baseId : item.id;
+      const base = getItem(baseId);
+      if (!base) return;
+      document.querySelectorAll(`.ic-ctl[data-ctl-for="${cssEsc(String(base.id))}"]`).forEach(el => {
+        el.innerHTML = addCtlHtml(base);
+      });
+    }
+
+    // تحديث كل العدّادات الظاهرة (بعد مزامنة تبويب أو إعادة طلب)
+    function syncAllCardQty() {
+      document.querySelectorAll('.ic-ctl').forEach(el => {
+        const base = getItem(el.dataset.ctlFor);
+        if (base) el.innerHTML = addCtlHtml(base);
+      });
+    }
+
+    // تهريب آمن للاستخدام داخل محدّد CSS
+    function cssEsc(v) {
+      if (window.CSS && CSS.escape) return CSS.escape(v);
+      return String(v).replace(/["\\\]\[]/g, '\\$&');
     }
 
     /* ══════════════════════════════
@@ -864,30 +1200,71 @@
     function startPopularRotation() {
       if (popularTimer) clearInterval(popularTimer);
       popularTimer = setInterval(() => {
+        if (document.hidden) return;   // الموقع بالخلفية: لا نحرق معالجة وبطارية
         const homeActive = document.getElementById('home')?.classList.contains('sec-active');
-        const anyOverlay = document.querySelector('.dov.on, .mov.on, .fov.on, .sov.on, .cov.on');
+        const anyOverlay = document.querySelector('.dov.on, .mov.on, .fov.on, .sov.on, .cov.on, .aov.on');
         const searching = (document.querySelector('.srch input')?.value || '').trim();
         if (homeActive && !anyOverlay && !searching) renderPopular();
-      }, 20000);
+      }, 45000);
     }
 
-    /* ── POPULATE ── */
+    /* ══════════════════════════════
+       POPULATE — رسم تدريجي (Lazy)
+       المشكلة القديمة: كنا نرسم ٢١ قسماً بكل أصنافها وصورها مرة واحدة
+       (مئات البطاقات) → الجوال يتهنّج ويعلّق. الحل: نرسم القسم عند فتحه فقط،
+       ونحضّر القسم المجاور بهدوء وقت فراغ المعالج.
+    ══════════════════════════════ */
+    const renderedCats = new Set();
+    const SKELETON = Array(3).fill('<div class="ic skeleton" style="height:210px;border-radius:24px;opacity:0.5"></div>').join('');
+
+    function whenIdle(fn) {
+      if (typeof requestIdleCallback === 'function') requestIdleCallback(fn, { timeout: 1500 });
+      else setTimeout(fn, 300);
+    }
+
+    function renderCatGrid(catId, force = false) {
+      if (renderedCats.has(catId) && !force) return;
+      const el = document.getElementById(safeDomId(catId) + 'G');
+      if (!el) return;
+      const items = DB[catId] || [];
+      if (!items.length) { el.innerHTML = SKELETON; return; }   // ننتظر البيانات
+      el.innerHTML = items.map((it, i) => rCard(it, Math.min(i, 8) * .05)).join('');
+      renderedCats.add(catId);
+      initReveal();
+    }
+
+    // نضمن أن القسم مرسوم قبل الانتقال إليه، ونحضّر جيرانه بعدها
+    function ensureSection(sectionId) {
+      const idx = CATS.findIndex(c => c && safeDomId(c.id) === sectionId);
+      if (idx === -1) return;                       // الرئيسية أو قسم غير معروف
+      renderCatGrid(CATS[idx].id);
+      whenIdle(() => {
+        if (CATS[idx + 1]) renderCatGrid(CATS[idx + 1].id);
+        if (CATS[idx - 1]) renderCatGrid(CATS[idx - 1].id);
+      });
+    }
+
     function populate() {
+      // الأقسام التي زارها الزبون فعلاً نعيد رسمها فوراً حتى تظهر تعديلات
+      // لوحة الإدارة بلا انتظار، والباقي يبقى هياكل تحميل خفيفة
+      const visited = Array.from(renderedCats);
       CATS.forEach(c => {
         const el = document.getElementById(safeDomId(c.id) + 'G');
-        if (el) {
-          if (!el.innerHTML || el.innerHTML.includes('skeleton')) {
-            el.innerHTML = Array(3).fill('<div class="ic skeleton" style="height:210px;border-radius:24px;opacity:0.5"></div>').join('');
-          }
-          if (DB[c.id] && DB[c.id].length > 0) {
-            el.innerHTML = DB[c.id].map((it, i) => rCard(it, i * .06)).join('');
-          }
-        }
+        if (el && !el.childElementCount) el.innerHTML = SKELETON;
       });
+      visited.forEach(id => renderCatGrid(id, true));
+
+      const activeId = document.querySelector('.sec.sec-active')?.id || 'home';
+      ensureSection(activeId);
+      // أول قسم جاهز مقدماً حتى تكون أول نقرة على تبويب فورية
+      if (activeId === 'home' && CATS[0]) whenIdle(() => renderCatGrid(CATS[0].id));
 
       // الأكثر طلباً: مجموعة تتغيّر كل زيارة (وكل فترة) بصور المنيو من قاعدة البيانات
       renderPopular();
+      renderFeatured();
+    }
 
+    function renderFeatured() {
       // featured slider
       document.getElementById('featS').innerHTML = FEAT.map((f, idx) => {
         const featuredItem = getItem(f.id) || f;
@@ -921,10 +1298,27 @@
       document.getElementById('dots').innerHTML =
         FEAT.map((_, i) => `<div class="dot${i === 0 ? ' on' : ''}" onclick="scrollFeat(${i})"></div>`).join('');
 
-      document.getElementById('featS').addEventListener('scroll', function () {
-        const i = Math.round(this.scrollLeft / 200);
-        document.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('on', j === i));
-      });
+      bindFeatScroll();
+    }
+
+    /* مستمع التمرير يُربط مرة واحدة فقط.
+       كان يُضاف في كل نداء لـ populate() (تحديثات فايربيس + كل مسح لخانة البحث)
+       فتتراكم عشرات المستمعات على نفس الحدث → تمرير متكسّر وتهنيج. */
+    let featScrollBound = false;
+    function bindFeatScroll() {
+      if (featScrollBound) return;
+      const featS = document.getElementById('featS');
+      if (!featS) return;
+      featScrollBound = true;
+      let raf = 0;
+      featS.addEventListener('scroll', () => {
+        if (raf) return;
+        raf = requestAnimationFrame(() => {
+          raf = 0;
+          const i = Math.round(featS.scrollLeft / 200);
+          document.querySelectorAll('.dot').forEach((d, j) => d.classList.toggle('on', j === i));
+        });
+      }, { passive: true });
     }
 
     function scrollFeat(i) {
@@ -961,6 +1355,30 @@
 
     function setActiveSection(id) {
       document.querySelectorAll('.sec').forEach(s => s.classList.toggle('sec-active', s.id === id));
+      rememberSection(id);
+    }
+
+    /* ── ذاكرة آخر قسم ──
+       يرجع الزبون لنفس القسم إذا رجع خلال نصف ساعة (كان يقرأ المنيو).
+       بعد ذلك يبدأ من الرئيسية حتى لا يفتح الموقع بعد يومين بقسم غريب. */
+    const SECTION_TTL = 30 * 60 * 1000;
+    let sectionSaveTimer = null;
+    function rememberSection(id) {
+      if (!id) return;
+      clearTimeout(sectionSaveTimer);
+      sectionSaveTimer = setTimeout(() => Store.set('lastSection', id, SECTION_TTL), 400);
+    }
+
+    let sectionRestored = false;
+    function restoreLastSection() {
+      if (sectionRestored) return;
+      sectionRestored = true;
+      const id = Store.get('lastSection', null);
+      if (!id || id === 'home') return;
+      const sec = document.getElementById(id);
+      if (!sec) return;
+      const tab = document.querySelector(`.tb[data-target="${cssEsc(id)}"]`);
+      if (tab) goTab(id, tab);
     }
 
     function playBrowseMotion(vp) {
@@ -972,20 +1390,31 @@
       browseTimer = setTimeout(() => vp.classList.remove('is-browsing'), 640);
     }
     function goTab(id, btn) {
-      tScroll = true;
-      const sec = document.getElementById(id);
       const vp = document.getElementById('mainVp');
-      if (!sec || !vp) return;
+      if (!vp) return;
+      tScroll = true;
+
+      ensureSection(id);                 // نرسم القسم قبل الانتقال إليه
+      const sec = document.getElementById(id);
+      if (!sec) { tScroll = false; return; }
 
       document.querySelectorAll('.tb').forEach(b => b.classList.remove('on'));
-      btn.classList.add('on');
-      btn.dataset.target = id;
-      btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      const tab = btn || document.querySelector(`.tb[data-target="${id}"]`);
+      if (tab) {
+        tab.classList.add('on');
+        tab.dataset.target = id;
+        tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
       setActiveSection(id);
       playBrowseMotion(vp);
 
-      vp.scrollTo({ left: sec.offsetLeft, behavior: 'smooth' });
-      setTimeout(() => tScroll = false, 800);
+      // مهم للسلاسة: التمرير الناعم لمسافة طويلة يجبر المتصفح على رسم كل
+      // الأقسام التي بين النقطتين (٢١ قسماً) في كل إطار → تهنيج واضح بالجوال.
+      // فإذا كانت المسافة بعيدة ننتقل فوراً، والناعم يبقى للأقسام المجاورة.
+      const target = sec.offsetLeft;
+      const far = Math.abs(target - vp.scrollLeft) > vp.clientWidth * 1.2;
+      vp.scrollTo({ left: target, behavior: far ? 'instant' : 'smooth' });
+      setTimeout(() => tScroll = false, far ? 250 : 800);
     }
 
     const secObs = new IntersectionObserver((entries) => {
@@ -996,6 +1425,7 @@
           const idx = Array.from(document.querySelectorAll('.sec')).indexOf(e.target);
           const tabs = document.querySelectorAll('.tb');
           setActiveSection(e.target.id);
+          ensureSection(e.target.id);   // القسم يُرسم عند الوصول إليه بالسحب
           if (changedSection) playBrowseMotion(document.getElementById('mainVp'));
           if (tabs[idx]) {
             tabs.forEach(t => t.classList.remove('on'));
@@ -1013,21 +1443,50 @@
     document.getElementById('home')?.classList.add('sec-active');
 
     /* ── SEARCH ── */
+    // البحث يُنفَّذ بعد توقّف الكتابة بلحظة، لا مع كل حرف.
+    // كل حرف كان يفلتر المنيو كامل ويعيد رسم البطاقات → الكتابة تتقطّع.
+    let searchTimer = null;
     function doSearch(v) {
-      v = v.trim();
-      const featWrap = document.getElementById('featWrap');
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(() => runSearch(v), 220);
+    }
+
+    function runSearch(v) {
+      v = String(v || '').trim();
       const popG = document.getElementById('popG');
+      const popH = document.getElementById('popHead');
+      if (!popG) return;
+
+      // نُخفي/نُظهر كتلة المميزات كاملة (العنوان + الشرائح + الزخرفة)
+      const toggleFeat = show => {
+        ['featHead', 'featWrap', 'featOrn'].forEach(fid => {
+          const el = document.getElementById(fid);
+          if (el) el.style.display = show ? '' : 'none';
+        });
+        const ev = document.getElementById('evSec');
+        const intro = document.querySelector('#home .intro-card');
+        if (ev && !show) ev.style.display = 'none';
+        if (intro) intro.style.display = show ? '' : 'none';
+      };
 
       if (!v) {
-        featWrap.style.display = 'block';
-        populate();
+        toggleFeat(true);
+        renderEvents();
+        if (popH) popH.textContent = 'الأكثر طلباً';
+        renderPopular();
         return;
       }
 
-      featWrap.style.display = 'none';
-      const res = all().filter(i => String(i.name || '').includes(v) || String(i.desc || '').includes(v));
+      toggleFeat(false);
+      const needle = v.toLowerCase();
+      const res = all().filter(i =>
+        String(i.name || '').toLowerCase().includes(needle) ||
+        String(i.desc || '').toLowerCase().includes(needle)
+      ).slice(0, 40);   // سقف للنتائج حتى لا يثقل الرسم على الجوال
+
+      if (popH) popH.textContent = res.length ? `نتائج البحث (${res.length})` : 'نتائج البحث';
       popG.innerHTML = res.length
-        ? res.map((it, i) => rCard(it, i * .04)).join('')
+        ? res.map((it, i) => rCard(it, Math.min(i, 8) * .04)).join('')
         : '<p style="color:var(--sub);font-size:14.5px;grid-column:1/-1;padding:40px 0;text-align:center;font-weight:600;">لا توجد نتائج مطابقة 💔</p>';
 
       goTab('home', document.querySelector('.tb'));
@@ -1114,9 +1573,9 @@
     function addFlavored(base, flavor) {
       const lineId = base.id + '::' + flavor;
       const ex = cart.find(c => String(c.id) === lineId);
-      if (ex) ex.qty++;
-      else cart.push({ ...base, id: lineId, baseId: base.id, flavor, name: `${base.name} (${flavor})`, qty: 1 });
-      updateUI(); renderDrawer();
+      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + 1);
+      else cart.push({ ...base, id: lineId, baseId: base.id, flavor, name: `${base.name} (${flavor})`, qty: 1, note: '' });
+      updateUI(); renderDrawer(); syncCardQty(base.id);
       showToast('تمت إضافة ' + base.name + ' — ' + flavor);
     }
 
@@ -1221,12 +1680,12 @@
       const total = Math.round(weight.kg * tier.perKg);
       const lineId = base.id + '::' + weight.kg + '::' + tier.perKg;
       const ex = cart.find(c => String(c.id) === lineId);
-      if (ex) ex.qty++;
+      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + 1);
       else cart.push({
-        ...base, id: lineId, baseId: base.id, qty: 1, price: total,
+        ...base, id: lineId, baseId: base.id, qty: 1, price: total, note: '',
         name: `${base.name} — ${weight.label} (${tier.includes})`
       });
-      updateUI(); renderDrawer();
+      updateUI(); renderDrawer(); syncCardQty(base.id);
       showToast('تمت إضافة ' + base.name + ' — ' + weight.label);
     }
 
@@ -1268,9 +1727,10 @@
       if (!skipFlavor && needsFish(item)) { openFish(item.id); return; }
       if (!skipFlavor && needsFlavor(item)) { openFlavor(item.id); return; }
       const ex = cart.find(c => String(c.id) === String(id));
-      if (ex) ex.qty++;
-      else cart.push({ ...item, qty: 1 });
+      if (ex) ex.qty = Math.min(MAX_QTY, ex.qty + 1);
+      else cart.push({ ...item, qty: 1, note: '' });
       updateUI();
+      syncCardQty(id);
       showToast('تمت إضافة ' + item.name);
       if (!skipSuggest) triggerSmartSuggestion(item);
     }
@@ -1282,6 +1742,8 @@
         else cart = cart.filter(c => String(c.id) !== String(id));
       }
       updateUI();
+      renderDrawer();
+      syncCardQty(id);
     }
 
     /* ══════════════════════════════
@@ -1366,19 +1828,23 @@
     function changeQty(id, d) {
       const ex = cart.find(c => String(c.id) === String(id));
       if (!ex) return;
-      ex.qty += d;
+      ex.qty = Math.min(MAX_QTY, ex.qty + d);
       if (ex.qty <= 0) { removeFromCart(id); return; }
-      updateUI(); renderDrawer();
+      updateUI(); renderDrawer(); syncCardQty(id);
     }
 
     function clearCart() { document.getElementById('cov').classList.add('on'); }
     function closeConfirm() { document.getElementById('cov').classList.remove('on'); }
-    function confirmClear() { cart = []; updateUI(); renderDrawer(); closeConfirm(); }
+    function confirmClear() {
+      cart = []; updateUI(); renderDrawer(); syncAllCardQty(); closeConfirm();
+    }
 
     function totalN() { return cart.reduce((s, c) => s + c.qty, 0); }
     function totalP() { return cart.reduce((s, c) => s + c.price * c.qty, 0); }
 
     function updateUI() {
+      // كل تعديل على السلة يمر من هنا → نحفظها فوراً بذاكرة الجهاز
+      saveCart();
       const n = totalN(), t = totalP();
       const hd = document.getElementById('hdrDot');
       hd.textContent = n; hd.classList.toggle('on', n > 0);
@@ -1393,6 +1859,13 @@
     function closeDrawer() { document.getElementById('dov').classList.remove('on'); }
     function closeDrawerOv(e) { if (e.target === document.getElementById('dov')) closeDrawer(); }
 
+    /* صورة سطر السلة: نرجع لصنف المنيو الأصلي (مهم لسطور الأركيلة والسمك
+       لأن اسمها معدّل فلا تُطابق خريطة الصور المحلية) */
+    function cartLineImg(c) {
+      const base = getItem(c.baseId != null ? c.baseId : c.id);
+      return resolveImg(base || c);
+    }
+
     function renderDrawer() {
       const body = document.getElementById('dBody');
       const foot = document.getElementById('dFoot');
@@ -1400,34 +1873,305 @@
         body.innerHTML = `<div class="d-empty">
           <i class="ph-light ph-shopping-cart-simple"></i>
           <p>سلتك فارغة</p>
-          <small>أضف أطباقك المفضلة</small>
+          <small>أضف أطباقك المفضلة من المنيو</small>
+          <button class="d-browse" onclick="closeDrawer()">
+            <i class="ph-bold ph-fork-knife"></i> تصفّح المنيو
+          </button>
         </div>`;
         foot.style.display = 'none'; return;
       }
       foot.style.display = 'block';
       document.getElementById('dCount').textContent = money(totalN()) + ' صنف';
       document.getElementById('dDelivery').textContent = money(DELIVERY_FEE) + ' د.ع';
+      document.getElementById('dSub').textContent = money(totalP()) + ' د.ع';
       document.getElementById('dTotal').textContent = money(totalP() + DELIVERY_FEE) + ' د.ع';
       body.innerHTML = cart.map((c, i) => {
-        return `<div class="citem" style="animation-delay:${i * 0.05}s">
-          <div class="citem-img"><i class="ph-light ph-fork-knife"></i></div>
-          <div class="citem-info">
-            <div class="citem-name">${esc(c.name)}</div>
-            <div class="citem-sub">${money(c.price * c.qty)} د.ع</div>
-            <div class="citem-unit">${money(c.price)} د.ع × ${money(c.qty)}</div>
+        const img = cartLineImg(c);
+        const media = img
+          ? `<div class="citem-img"><img src="${attr(img)}" alt="${attr(c.name)}" loading="lazy" decoding="async" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'ph-light ph-fork-knife'}))"></div>`
+          : `<div class="citem-img"><i class="ph-light ph-fork-knife"></i></div>`;
+        const hasNote = !!(c.note && c.note.trim());
+        return `<div class="citem-wrap">
+          <div class="citem" style="animation-delay:${Math.min(i, 8) * 0.04}s">
+            ${media}
+            <div class="citem-info">
+              <div class="citem-name">${esc(c.name)}</div>
+              <div class="citem-sub">${money(c.price * c.qty)} د.ع</div>
+              <div class="citem-unit">${money(c.price)} د.ع × ${money(c.qty)}</div>
+            </div>
+            <div class="cqty">
+              <button class="qb" onclick="changeQty('${jsArg(c.id)}',-1)" aria-label="أنقص"><i class="ph-bold ph-minus"></i></button>
+              <span class="qn">${money(c.qty)}</span>
+              <button class="qb" onclick="changeQty('${jsArg(c.id)}',1)" aria-label="زد"><i class="ph-bold ph-plus"></i></button>
+            </div>
+            <button class="crem" onclick="removeFromCart('${jsArg(c.id)}')" aria-label="احذف"><i class="ph-bold ph-trash-simple"></i></button>
           </div>
-          <div class="cqty">
-            <button class="qb" onclick="changeQty('${jsArg(c.id)}',-1)"><i class="ph-bold ph-minus"></i></button>
-            <span class="qn">${money(c.qty)}</span>
-            <button class="qb" onclick="changeQty('${jsArg(c.id)}',1)"><i class="ph-bold ph-plus"></i></button>
+          <div class="cnote-row">
+            <button class="cnote-btn${hasNote ? ' on' : ''}" onclick="toggleNote(${i})">
+              <i class="ph-bold ph-note-pencil"></i> ${hasNote ? 'تعديل الملاحظة' : 'أضف ملاحظة'}
+            </button>
+            ${hasNote ? `<span class="cnote-txt">${esc(c.note)}</span>` : ''}
           </div>
-          <button class="crem" onclick="removeFromCart('${jsArg(c.id)}')"><i class="ph-bold ph-trash-simple"></i></button>
+          <div class="cnote-edit" id="note_${i}" style="display:none">
+            <input type="text" maxlength="140" value="${attr(c.note || '')}"
+              placeholder="مثال: بدون بصل، حار زيادة، مشوي زيادة"
+              onkeydown="if(event.key==='Enter'){saveNote(${i},this.value)}">
+            <button class="cnote-ok" onclick="saveNote(${i}, this.previousElementSibling.value)">
+              <i class="ph-bold ph-check"></i>
+            </button>
+          </div>
         </div>`;
       }).join('');
     }
 
+    /* ملاحظة على صنف معيّن (بدون بصل، حار زيادة...) — تُرسل مع الطلب.
+       نستخدم رقم السطر بالسلة لا المعرّف: معرّفات النكهات تحتوي حروفاً عربية
+       و«::» فتتحول لنفس القيمة بعد التنقية → تتضارب الصناديق. */
+    function toggleNote(idx) {
+      const box = document.getElementById('note_' + idx);
+      if (!box) return;
+      const open = box.style.display !== 'none';
+      box.style.display = open ? 'none' : 'flex';
+      if (!open) { const inp = box.querySelector('input'); if (inp) { inp.focus(); inp.select(); } }
+    }
+
+    function saveNote(idx, val) {
+      const line = cart[idx];
+      if (!line) return;
+      line.note = String(val || '').trim().slice(0, 140);
+      updateUI();
+      renderDrawer();
+      showToast(line.note ? 'انحفظت الملاحظة' : 'انحذفت الملاحظة');
+    }
+
+    /* ══════════════════════════════
+       ذاكرة بيانات الزبون — ما يعيد كتابة الاسم والعنوان بكل طلب
+    ══════════════════════════════ */
+    const CUST_FIELDS = ['custBranch', 'custName', 'custBlock', 'custBlockNum', 'custBuilding', 'custFloor', 'custApt', 'custPhone'];
+
+    function saveCustomer() {
+      if (!document.getElementById('custRemember')?.checked) { Store.del('customer'); return; }
+      const data = { remember: true };
+      CUST_FIELDS.forEach(id => { data[id] = document.getElementById(id)?.value || ''; });
+      Store.set('customer', data);
+    }
+
+    /* اختيار الزبون بخصوص الحفظ يُخزَّن لوحده (قيمة نعم/لا فقط، بلا أي بيانات
+       شخصية). لولاه: يشيل الصح، ونحن نمسح بياناته، فبالفتح القادم ما عندنا
+       شي نعرف منه رغبته فيرجع الصح مؤشّراً ضد ما طلب. */
+    function rememberPref() { return Store.get('rememberPref', true) !== false; }
+
+    /* ── الحفظ أثناء الكتابة ──
+       قبل، البيانات تُحفظ فقط عند إرسال الطلب — فإذا عبّى الزبون وطلع
+       قبل الإرسال يضيع كل شيء ويعيد الكتابة من الصفر. الآن كل خانة
+       تُحفظ بعد لحظة من التوقف عن الكتابة، فمعلوماته تبقى بأي حال. */
+    let custSaveTimer = null;
+    let custBound = false;
+    function bindCustomerAutosave() {
+      if (custBound) return;
+      custBound = true;
+      CUST_FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const ev = el.tagName === 'SELECT' ? 'change' : 'input';
+        el.addEventListener(ev, () => {
+          clearTimeout(custSaveTimer);
+          custSaveTimer = setTimeout(() => { saveCustomer(); renderCustStatus(); }, 500);
+        });
+      });
+
+      const rem = document.getElementById('custRemember');
+      if (rem) rem.addEventListener('change', () => {
+        Store.set('rememberPref', rem.checked);
+        if (rem.checked) { saveCustomer(); showToast('راح نحفظ معلوماتك للطلبات القادمة'); }
+        else { Store.del('customer'); showToast('ما راح نحفظ معلوماتك'); }
+        renderCustStatus();
+      });
+    }
+
+    function fillCustomer() {
+      const data = Store.get('customer', null);
+      const rem = document.getElementById('custRemember');
+      if (rem) rem.checked = rememberPref();
+      if (!data || typeof data !== 'object') {
+        renderCustStatus();
+        return false;
+      }
+      CUST_FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && data[id]) el.value = data[id];
+      });
+      // إظهار تفاصيل البلوك إن كان محفوظاً
+      toggleBlockDetails(document.getElementById('custBlock').value);
+      updateBranchInfo(document.getElementById('custBranch').value);
+      renderCustStatus();
+      return true;
+    }
+
+    /* شريط يطمّن الزبون أن معلوماته محفوظة، ويعطيه زر مسح إن حبّ */
+    function renderCustStatus() {
+      const el = document.getElementById('custStatus');
+      if (!el) return;
+      const data = Store.get('customer', null);
+      const hasName = !!(data && data.custName);
+      if (!Store.ok) {
+        el.style.display = 'flex';
+        el.className = 'fm-saved is-warn';
+        el.innerHTML = `<i class="ph-bold ph-warning-circle"></i>
+          <span>متصفحك ما يسمح بحفظ المعلومات (تصفح خاص) — راح تكتبها كل مرة.</span>`;
+        return;
+      }
+      if (!hasName) { el.style.display = 'none'; return; }
+      el.style.display = 'flex';
+      el.className = 'fm-saved';
+      el.innerHTML = `<i class="ph-fill ph-check-circle"></i>
+        <span>معلوماتك محفوظة وتنعبّى تلقائياً كل طلب</span>
+        <button type="button" class="fm-saved-clear" onclick="clearCustomer()">مسح</button>`;
+    }
+
+    function clearCustomer() {
+      Store.del('customer');
+      CUST_FIELDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        // الفرع والمنطقة ثابتة — نتركها على قيمتها الافتراضية
+        if (id === 'custBranch' || id === 'custArea') return;
+        el.value = '';
+      });
+      toggleBlockDetails('');
+      renderCustStatus();
+      showToast('انمسحت معلوماتك المحفوظة');
+    }
+
+    // ملخّص الطلب داخل نافذة الإكمال حتى يشوف الزبون ما يدفعه قبل الإرسال
+    function renderFormSummary() {
+      const el = document.getElementById('fmSum');
+      if (!el) return;
+      el.innerHTML = `
+        <div class="fm-sum-row"><span>${money(totalN())} صنف</span><span>${money(totalP())} د.ع</span></div>
+        <div class="fm-sum-row"><span>التوصيل</span><span>${money(DELIVERY_FEE)} د.ع</span></div>
+        <div class="fm-sum-row fm-sum-total"><span>الإجمالي</span><span>${money(totalP() + DELIVERY_FEE)} د.ع</span></div>`;
+    }
+
+    /* ══════════════════════════════
+       مفضلاتي — قسم بالرئيسية يظهر فقط إذا عنده مفضلات
+    ══════════════════════════════ */
+    function renderFavSection() {
+      const sec = document.getElementById('favSec');
+      const grid = document.getElementById('favG');
+      if (!sec || !grid) return;
+      // نعرض المفضلات الموجودة فعلاً بالمنيو الحالي
+      const items = Array.from(favs).map(id => getItem(id)).filter(Boolean);
+      if (!items.length) { sec.style.display = 'none'; grid.innerHTML = ''; return; }
+      sec.style.display = 'block';
+      grid.innerHTML = items.map((it, i) => rCard(it, Math.min(i, 6) * .05)).join('');
+      initReveal();
+    }
+
+    /* ══════════════════════════════
+       سجل الطلبات — عرض + إعادة الطلب بضغطة
+    ══════════════════════════════ */
+    function openOrders() {
+      renderOrders();
+      document.getElementById('oov').classList.add('on');
+    }
+    function closeOrders() { document.getElementById('oov').classList.remove('on'); }
+    function closeOrdersOv(e) { if (e.target === document.getElementById('oov')) closeOrders(); }
+
+    function fmtOrderDate(ts) {
+      const d = new Date(ts);
+      if (isNaN(d)) return '';
+      const today = new Date();
+      const sameDay = d.toDateString() === today.toDateString();
+      const yst = new Date(today); yst.setDate(today.getDate() - 1);
+      const isYst = d.toDateString() === yst.toDateString();
+      let h = d.getHours(); const m = String(d.getMinutes()).padStart(2, '0');
+      const ampm = h >= 12 ? 'م' : 'ص'; h = h % 12 || 12;
+      const time = `${h}:${m} ${ampm}`;
+      if (sameDay) return 'اليوم ' + time;
+      if (isYst) return 'أمس ' + time;
+      return `${d.getDate()}/${d.getMonth() + 1} — ${time}`;
+    }
+
+    function renderOrders() {
+      const body = document.getElementById('oBody');
+      const orders = loadOrders();
+      if (!orders.length) {
+        body.innerHTML = `<div class="d-empty">
+          <i class="ph-light ph-receipt"></i>
+          <p>ما عندك طلبات سابقة</p>
+          <small>أول ما تسوي طلب يُحفظ هنا وتقدر تعيده بضغطة</small>
+          <button class="d-browse" onclick="closeOrders()">
+            <i class="ph-bold ph-fork-knife"></i> تصفّح المنيو
+          </button>
+        </div>`;
+        return;
+      }
+      body.innerHTML = orders.map((o, idx) => {
+        const lines = (o.items || []).map(it =>
+          `<div class="oh-line"><span>${money(it.qty)}× ${esc(it.name)}</span><span>${money(it.price * it.qty)} د.ع</span></div>`
+        ).join('');
+        return `<div class="oh-card">
+          <div class="oh-top">
+            <div>
+              <div class="oh-no">طلب #${esc(o.no || '—')}</div>
+              <div class="oh-date">${esc(fmtOrderDate(o.at))}</div>
+            </div>
+            <div class="oh-total">${money(o.total)} د.ع</div>
+          </div>
+          <div class="oh-lines">${lines}</div>
+          ${o.notes ? `<div class="oh-note"><i class="ph-bold ph-note-pencil"></i> ${esc(o.notes)}</div>` : ''}
+          <button class="oh-again" onclick="reorder(${idx})">
+            <i class="ph-bold ph-arrow-counter-clockwise"></i> أعِد هذا الطلب
+          </button>
+        </div>`;
+      }).join('');
+    }
+
+    /* إعادة الطلب: نبني السلة من جديد مع التحقق من المنيو الحالي —
+       الأصناف المحذوفة تُستثنى، والأسعار تُحدَّث لأسعار اليوم. */
+    function reorder(idx) {
+      const orders = loadOrders();
+      const o = orders[idx];
+      if (!o || !Array.isArray(o.items) || !o.items.length) { showToast('تعذّر استرجاع هذا الطلب'); return; }
+
+      const rebuilt = [];
+      let dropped = 0, repriced = 0;
+      o.items.forEach(it => {
+        const baseId = it.baseId != null ? it.baseId : it.id;
+        const base = getItem(baseId);
+        if (!base) { dropped++; return; }
+        const qty = Math.max(1, Math.min(MAX_QTY, Number(it.qty) || 1));
+        if (it.baseId != null) {
+          // سطر نكهة/وزن: نحافظ على تركيبته كما هي بسعرها المحفوظ
+          rebuilt.push({ ...base, id: it.id, baseId: base.id, name: it.name, price: Number(it.price) || 0, qty, note: it.note || '' });
+        } else {
+          const nowPrice = Number(base.price) || 0;
+          if (nowPrice !== Number(it.price)) repriced++;
+          rebuilt.push({ ...base, qty, note: it.note || '' });
+        }
+      });
+
+      if (!rebuilt.length) { showToast('أصناف هذا الطلب ما صارت موجودة بالمنيو'); return; }
+
+      cart = rebuilt;
+      updateUI(); syncAllCardQty();
+      closeOrders();
+      openDrawer();
+      let msg = 'رجّعنا طلبك للسلة';
+      if (dropped) msg += ` (${dropped} صنف ما صار متوفر)`;
+      else if (repriced) msg += ' — بأسعار اليوم';
+      showToast(msg);
+    }
+
     function checkout() {
-      if (cart.length === 0) return;
+      if (cart.length === 0) { showToast('سلتك فارغة — أضف أصنافاً أولاً'); return; }
+      // تحذير لطيف إذا كان المقهى مغلقاً حالياً، بدون منع الطلب
+      if (HOURS && HOURS.enabled !== false && HOURS.open && HOURS.close && !isOpenNow(HOURS.open, HOURS.close)) {
+        showToast('المقهى مغلق حالياً — طلبك يوصل عند الافتتاح');
+      }
+      fillCustomer();
+      renderFormSummary();
       document.getElementById('fov').classList.add('on');
       closeDrawer();
     }
@@ -1464,14 +2208,41 @@
       const apt = document.getElementById('custApt').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
 
-      if (!branch) { showToast('يرجى اختيار الفرع!'); return; }
-      if (!name) { showToast('يرجى إدخال اسمك!'); return; }
-      if (!block) { showToast('يرجى اختيار البلوك!'); return; }
-      if (!blockNum) { showToast('يرجى إدخال رقم البلوك!'); return; }
-      if (!building) { showToast('يرجى إدخال رقم البناية!'); return; }
-      if (!floor) { showToast('يرجى إدخال الطابق!'); return; }
-      if (!apt) { showToast('يرجى إدخال رقم الشقة!'); return; }
-      if (!phone) { showToast('يرجى إدخال رقم الهاتف!'); return; }
+      const notes = (document.getElementById('custNotes')?.value || '').trim();
+
+      // السلة فرغت بطريقة ما (تحديث منيو مثلاً)؟ لا نرسل طلباً فاضياً
+      if (cart.length === 0) { showToast('سلتك فارغة'); closeForm(); return; }
+
+      // التحقق يركّز على أول خانة ناقصة ويفتحها للزبون بدل رسالة مبهمة
+      const focusField = id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.focus({ preventScroll: false });
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.classList.add('fm-err');
+        setTimeout(() => el.classList.remove('fm-err'), 1600);
+      };
+      const need = (val, id, msg) => {
+        if (val) return false;
+        showToast(msg); focusField(id); return true;
+      };
+
+      if (need(branch, 'custBranch', 'يرجى اختيار الفرع!')) return;
+      if (need(name, 'custName', 'يرجى إدخال اسمك!')) return;
+      if (need(block, 'custBlock', 'يرجى اختيار البلوك!')) return;
+      if (need(blockNum, 'custBlockNum', 'يرجى إدخال رقم البلوك!')) return;
+      if (need(building, 'custBuilding', 'يرجى إدخال رقم البناية!')) return;
+      if (need(floor, 'custFloor', 'يرجى إدخال الطابق!')) return;
+      if (need(apt, 'custApt', 'يرجى إدخال رقم الشقة!')) return;
+      if (need(phone, 'custPhone', 'يرجى إدخال رقم الهاتف!')) return;
+
+      // رقم عراقي: ١١ رقماً يبدأ بـ 07 — نتحقق حتى لا يضيع الطلب برقم غلط
+      const digits = phone.replace(/[^\d]/g, '');
+      if (!/^07\d{9}$/.test(digits)) {
+        showToast('رقم الهاتف غير صحيح — اكتبه ١١ رقماً يبدأ بـ 07');
+        focusField('custPhone');
+        return;
+      }
 
       const branchNumbers = {
         'بسماية': '9647753203030'
@@ -1483,11 +2254,13 @@
       h = h % 12 || 12;
       const timeStr = h + ':' + (m < 10 ? '0' + m : m) + ' ' + ampm;
 
+      const orderNo = nextOrderNo();
       const line = '━━━━━━━━━━━━━━';
       let msg = `🟢 *مقهى أبو حالوب — طلب جديد*\n`;
+      msg += `🔖 *رقم الطلب:* ${orderNo}\n`;
       msg += `${line}\n`;
       msg += `👤 *الاسم:* ${name}\n`;
-      msg += `📞 *الهاتف:* ${phone}\n`;
+      msg += `📞 *الهاتف:* ${digits}\n`;
       msg += `🏬 *الفرع:* ${branch}\n`;
       msg += `🏙️ *المنطقة:* ${area}\n`;
       msg += `📍 *العنوان:* بلوك ${block} - رقم البلوك ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}\n`;
@@ -1496,12 +2269,17 @@
       msg += `🧾 *تفاصيل الطلب:*\n`;
       cart.forEach(c => {
         msg += `• ${c.qty}× ${c.name} — ${money(c.price * c.qty)} د.ع\n`;
+        if (c.note && c.note.trim()) msg += `   ↳ _${c.note.trim()}_\n`;
       });
       msg += `${line}\n`;
       msg += `📦 *عدد الأصناف:* ${money(totalN())}\n`;
       msg += `🧾 *مجموع الطلب:* ${money(totalP())} د.ع\n`;
       msg += `🚚 *التوصيل:* ${money(DELIVERY_FEE)} د.ع (ملاحظة: ألف دينار توصيل)\n`;
       msg += `💰 *الإجمالي النهائي:* ${money(totalP() + DELIVERY_FEE)} د.ع\n`;
+      if (notes) {
+        msg += `${line}\n`;
+        msg += `📝 *ملاحظات الزبون:*\n${notes}\n`;
+      }
       if (customerLoc) {
         msg += `${line}\n`;
         msg += `📍 *موقع الزبون على الخريطة:*\n${customerLoc.link}\n`;
@@ -1510,9 +2288,39 @@
       const resNumber = branchNumbers[branch];
       if (!resNumber) { showToast('رقم هذا الفرع غير متاح حالياً، يرجى اختيار فرع آخر.'); return; }
       const waUrl = `https://wa.me/${resNumber}?text=${encodeURIComponent(msg)}`;
-      cart = []; updateUI(); renderDrawer(); closeForm();
-      window.open(waUrl, '_blank');
-      setTimeout(() => openAlert(`تم إرسال طلبك بنجاح عبر واتساب.`), 800);
+
+      saveCustomer();     // نحفظ بياناته للطلب القادم
+
+      // نحفظ الطلب بالسجل قبل الإرسال — حتى لو ضاع الاتصال يبقى عنده الطلب
+      const orders = loadOrders();
+      orders.unshift({
+        no: orderNo,
+        at: Date.now(),
+        items: cart.map(c => ({ id: c.id, baseId: c.baseId, name: c.name, price: c.price, qty: c.qty, note: c.note || '' })),
+        sub: totalP(),
+        fee: DELIVERY_FEE,
+        total: totalP() + DELIVERY_FEE,
+        branch, area,
+        address: `بلوك ${block} - رقم ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}`,
+        notes
+      });
+      saveOrders(orders);
+
+      // مهم: نتأكد أن واتساب انفتح فعلاً قبل تفريغ السلة.
+      // سابقاً كانت السلة تُفرَّغ قبل الفتح، فإذا منع المتصفح النافذة
+      // يضيع الطلب والسلة معاً ولا يفهم الزبون شنو صار.
+      const win = window.open(waUrl, '_blank');
+      const blocked = !win || win.closed;
+      if (blocked) {
+        showToast('جاري فتح واتساب...');
+        location.href = waUrl;     // بديل: نفس التبويب (يشتغل بالجوال دائماً)
+      }
+
+      closeForm();
+      const notesEl = document.getElementById('custNotes');
+      if (notesEl) notesEl.value = '';
+      cart = []; updateUI(); renderDrawer(); syncAllCardQty();
+      if (!blocked) setTimeout(() => openAlert(`رقم طلبك ${orderNo} — تحفظه في «طلباتي السابقة».`), 800);
     }
 
     let alertTimer;
@@ -1612,15 +2420,21 @@
     }
 
     /* ── INIT ── */
+    updateUI();          // نرجّع سلة الزبون المحفوظة قبل أي شيء
+    renderFavSection();
     initFirebase();
     initReveal();
     initSwipe('dov', closeDrawer);
     initSwipe('mov', closeModal);
     initSwipe('fov', closeForm);
+    initSwipe('oov', closeOrders);
+    bindCustomerAutosave();   // معلومات الزبون تُحفظ وهو يكتب، لا عند الإرسال فقط
     startPopularRotation();   // تبديل "الأكثر طلباً" كل فترة
     // تم إيقاف إشعار طلب الموقع عند دخول المستخدم (يظهر فقط عند إكمال الطلب أونلاين)
 
     /* ── CACHE CLEAR & SERVICE WORKER ── */
+    // أداة صيانة يدوية فقط (تُنادى من الكونسول عند الحاجة). لا تعمل تلقائياً
+    // لأن مسح الكاش + إعادة التحميل كان يقطع على الزبون وهو يطلب.
     async function clearAllCaches() {
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
@@ -1633,32 +2447,17 @@
       console.log('Caches and SW cleared');
     }
 
-    // Force clear once if needed (e.g. after a major fix)
-    if (!localStorage.getItem('nashmi_cache_cleared_v42')) {
-      clearAllCaches().then(() => {
-        localStorage.setItem('nashmi_cache_cleared_v42', 'true');
-        location.reload();
-      });
-    }
-
     if ('serviceWorker' in navigator) {
-      // إعادة التحميل تلقائياً عند تفعيل نسخة جديدة من الـ Service Worker
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (refreshing) return;
-        refreshing = true;
-        location.reload();
-      });
-
+      // مهم: لا نعيد تحميل الصفحة تلقائياً عند تفعيل نسخة جديدة.
+      // كانت إعادة التحميل تصير والزبون يتصفّح أو يطلب فتضيع السلة ويبدو الموقع
+      // كأنه "معلّق". النسخة الجديدة تشتغل بهدوء عند الدخول القادم
+      // (الـ SW يجيب HTML/CSS/JS من الشبكة أولاً، فالمحتوى دائماً أحدث نسخة).
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then(reg => {
-          console.log('SW Registered');
-          // فحص وجود تحديث جديد فوراً وكل فترة
           reg.update();
-          setInterval(() => reg.update(), 60 * 1000);
-        }).catch(err => {
-          console.log('SW Registration failed', err);
-        });
+          // فحص هادئ كل ٣٠ دقيقة بدل كل دقيقة (توفير معالجة وبيانات)
+          setInterval(() => reg.update(), 30 * 60 * 1000);
+        }).catch(() => { /* الموقع يشتغل عادي بدون SW */ });
       });
     }
   </script>
