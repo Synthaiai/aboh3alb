@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة أبو حالوب — Admin Portal</title>
+    <title>إدارة مطعم روزا — Admin Portal</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Changa:wght@700;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -11,13 +11,13 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <style>
         :root {
-            --red: #1f3329;
+            --red: #7c2a38;
             --red-light: #edf4ef;
-            --bg: #f4ecdf;
+            --bg: #f6efe3;
             --white: #fffaf1;
             --ink: #241c17;
             --sub: #66574b;
-            --border: rgba(157, 106, 63, 0.24);
+            --border: rgba(184, 137, 63, 0.24);
             --accent: #b84336;
             --brass: #d4aa62;
             --sage: #7f9d84;
@@ -26,8 +26,8 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background:
-                linear-gradient(145deg, rgba(31, 51, 41, 0.15) 0 18%, transparent 18% 100%),
-                linear-gradient(22deg, rgba(184, 67, 54, 0.08) 0 18%, transparent 18% 100%),
+                linear-gradient(145deg, rgba(124, 42, 56, 0.15) 0 18%, transparent 18% 100%),
+                linear-gradient(22deg, rgba(165, 66, 74, 0.08) 0 18%, transparent 18% 100%),
                 var(--bg);
             font-family: 'Cairo', sans-serif;
             color: var(--ink);
@@ -40,8 +40,8 @@
             position: fixed;
             inset: 0;
             background:
-                linear-gradient(145deg, rgba(31, 51, 41, 0.92), rgba(36, 28, 23, 0.86)),
-                url('texture.webp') center / cover;
+                radial-gradient(120% 120% at 50% 0%, rgba(124, 42, 56, 0.28), transparent 55%),
+                #0b0908;
             z-index: 10000;
             display: flex;
             align-items: center;
@@ -91,21 +91,21 @@
         .login-card input:focus {
             background: #fff;
             border-color: var(--red);
-            box-shadow: 0 0 0 4px rgba(31, 51, 41, 0.10);
+            box-shadow: 0 0 0 4px rgba(124, 42, 56, 0.10);
         }
         .login-card button {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, var(--red), #365947);
+            background: linear-gradient(135deg, var(--red), #9c3d4b);
             color: white;
             border: none;
             border-radius: 14px;
             font-weight: 800;
             cursor: pointer;
             transition: 0.3s;
-            box-shadow: 0 12px 28px rgba(31, 51, 41, 0.20);
+            box-shadow: 0 12px 28px rgba(124, 42, 56, 0.20);
         }
-        .login-card button:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(31, 51, 41, 0.28); }
+        .login-card button:hover { transform: translateY(-2px); box-shadow: 0 16px 34px rgba(124, 42, 56, 0.28); }
         .login-card button:disabled { opacity: .72; cursor: wait; transform: none; }
         @keyframes adminLoginIn {
             from { opacity: 0; transform: translateY(18px) scale(.98); }
@@ -161,7 +161,7 @@
             gap: 10px;
             transition: 0.2s;
         }
-        .btn-primary { background: linear-gradient(135deg, var(--red), #365947); color: white; }
+        .btn-primary { background: linear-gradient(135deg, var(--red), #9c3d4b); color: white; }
         .btn-primary:hover { background: linear-gradient(135deg, #17261f, var(--red)); transform: translateY(-2px); }
         .btn-sync { background: var(--red-light); color: var(--red); }
 
@@ -186,14 +186,14 @@
             background: rgba(254, 252, 247, 0.88);
             border-radius: 18px;
             padding: 20px;
-            border: 1px solid rgba(111, 78, 55, 0.14);
+            border: 1px solid rgba(124, 42, 56, 0.14);
             border-right: 4.5px solid var(--accent); /* brand indicator */
             display: flex;
             align-items: center;
             gap: 20px;
             transition: 0.3s;
         }
-        .item-card:hover { border-color: var(--red); box-shadow: 0 10px 30px rgba(111, 78, 55, 0.08); }
+        .item-card:hover { border-color: var(--red); box-shadow: 0 10px 30px rgba(124, 42, 56, 0.08); }
 
         .item-img {
             width: 80px;
@@ -504,7 +504,7 @@
 
     <header class="hdr">
         <div class="logo">
-            <i class="ph-bold ph-chef-hat"></i> أبو حالوب — الإدارة
+            <i class="ph-bold ph-chef-hat"></i> مطعم روزا — الإدارة
         </div>
         <div style="display:flex; gap:20px; align-items:center;">
             <button class="btn btn-sync" style="background:#f0fdf4; color:#16a34a; padding:8px 15px;" onclick="openCatModal()">
@@ -651,6 +651,20 @@
                         <button class="btn btn-primary" onclick="addCategory()" style="padding:10px;">إضافة</button>
                     </div>
                 </div>
+
+                <!-- منطقة خطرة: تفريغ المنيو بالكامل -->
+                <div style="margin-top:22px; padding:14px 15px; border:1.5px dashed rgba(220,38,38,0.45); border-radius:14px; background:#fef2f2;">
+                    <div style="font-weight:800; color:#dc2626; margin-bottom:6px;">
+                        <i class="ph-bold ph-warning-octagon"></i> تفريغ المنيو بالكامل
+                    </div>
+                    <p style="font-size:12.5px; color:#7f1d1d; line-height:1.6; margin-bottom:10px;">
+                        يحذف <b>كل الأقسام وكل الأصناف</b> من قاعدة البيانات نهائياً، ويخلّي المنيو صفحة بيضاء
+                        تبني عليها من جديد. ما تنرجع بعد الحذف.
+                    </p>
+                    <button type="button" class="btn" style="background:#dc2626; color:#fff; width:100%;" onclick="wipeMenu()">
+                        <i class="ph-bold ph-trash"></i> احذف كل الأقسام والأصناف
+                    </button>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-sync" style="background:#eee; color:#333; flex:1;" onclick="closeCatModal()">إغلاق</button>
@@ -795,7 +809,7 @@
 
         const MAX_ATTEMPTS = 4;
         const LOCK_MS      = 6 * 60 * 60 * 1000;   // قفل 6 ساعات
-        const LOCK_KEY     = 'h3alb_lock';          // يُخزَّن بـ localStorage فيصمد بعد إعادة تحميل الصفحة
+        const LOCK_KEY     = 'roza_lock';          // يُخزَّن بـ localStorage فيصمد بعد إعادة تحميل الصفحة
         const SESSION_UNTIL_KEY = 'adminAuthUntil';
         const SESSION_MS = 45 * 60 * 1000;
 
@@ -912,7 +926,7 @@
                 alert("برجاء الانتظار حتى يتم تحميل ملف الاعدادات");
                 return;
             }
-            const testRef = firebase.database().ref('h3alb_menu/connection_test');
+            const testRef = firebase.database().ref('roza_menu/connection_test');
             const testData = { timestamp: Date.now(), status: "working" };
             
             alert("بدء فحص الاتصال... يرجى الانتظار ثواني.");
@@ -1157,6 +1171,21 @@
         function deleteCategory(id) {
             if(confirm('هل أنت متأكد من حذف هذا القسم؟ ملاحظة: الوجبات التابعة له ستبقى ولكن لن تظهر في الموقع حتى تختار لها قسم آخر.')) {
                 db.child('categories').child(id).remove();
+            }
+        }
+
+        /* تفريغ المنيو: حذف كل الأقسام والأصناف بضغطة وحدة.
+           نطلب كتابة كلمة تأكيد حتى ما تنضغط بالغلط. */
+        async function wipeMenu() {
+            const typed = prompt('تحذير: راح ينحذف كل الأقسام وكل الأصناف نهائياً — اكتب كلمة  حذف  للتأكيد:');
+            if (typed === null) return;
+            if (String(typed).trim() !== 'حذف') { showToast('انلغى التفريغ — ما انكتبت كلمة التأكيد'); return; }
+            try {
+                await db.child('items').remove();
+                await db.child('categories').remove();
+                showToast('انفرغ المنيو — ابدأ بإضافة أقسامك وأصنافك');
+            } catch (e) {
+                showToast('ما انحذف: ' + (e && e.message ? e.message : e));
             }
         }
 
@@ -1459,7 +1488,7 @@
                 document.getElementById('statusTxt').innerText = "خطأ في الاتصال!";
                 return;
             }
-            db = firebase.database().ref('h3alb_menu');
+            db = firebase.database().ref('roza_menu');
             
             // Listen to Categories
             db.child('categories').on('value', snap => {

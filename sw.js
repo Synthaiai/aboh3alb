@@ -1,11 +1,11 @@
-const CACHE_NAME = 'h3alb-v44';
+const CACHE_NAME = 'roza-v1';
 const ASSETS = [
   './',
   './index.html',
-  './style.css',
-  './firebase-config.js',
+  './style.css?v=roza1',
+  './firebase-config.js?v=roza1',
   './logo1.png',
-  './texture.webp',
+  './logo.png',
   'https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap'
 ];
 

@@ -4,15 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-  <title>مقهى ابو حالوب — قائمة الطعام</title>
-  <meta name="description" content="قائمة طعام مقهى ابو حالوب">
+  <title>مطعم روزا — قائمة الطعام</title>
+  <meta name="description" content="قائمة طعام مطعم روزا">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com">
   <link rel="preconnect" href="https://unpkg.com">
   <!-- تسريع أول اتصال بقاعدة بيانات فايربيس ليصل المنيو أسرع -->
-  <link rel="preconnect" href="https://abo-h3alb-default-rtdb.firebaseio.com" crossorigin>
-  <link rel="dns-prefetch" href="https://abo-h3alb-default-rtdb.firebaseio.com">
+  <link rel="preconnect" href="https://roza-306be-default-rtdb.firebaseio.com" crossorigin>
+  <link rel="dns-prefetch" href="https://roza-306be-default-rtdb.firebaseio.com">
   <!-- خطوط احتياطية فقط (الأساس خطوط النظام)، طلب واحد بأوزان قليلة -->
   <link
     href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;700&family=Outfit:wght@400;600;700&display=swap"
@@ -20,10 +20,10 @@
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="logo1.png">
   <link rel="apple-touch-icon" href="logo1.png">
-  <meta name="theme-color" content="#2b2b2b">
+  <meta name="theme-color" content="#141011">
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1/src/index.js" defer></script>
 
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=roza1">
 </head>
 
 <body>
@@ -31,11 +31,10 @@
   <!-- HEADER -->
   <header class="hdr">
     <div class="hdr-brand">
-      <div class="hdr-logo-wrap">
-        <img src="logo1.png" class="hdr-logo-img" alt="أبو حالوب" fetchpriority="high" decoding="async" width="52" height="52">
-      </div>
-      <h1 class="hdr-title-ar">مقهى أبو حالوب</h1>
-      <h2 class="hdr-title-en">Abo Haloub Cafe</h2>
+      <h1 class="hdr-logo-wrap">
+        <img src="logo.png" class="hdr-logo-img" alt="مطعم روزا" fetchpriority="high" decoding="async" width="280" height="193">
+      </h1>
+      <h2 class="hdr-title-en">Roza Restaurant</h2>
     </div>
     <div class="hdr-acts">
       <button class="hdr-btn hdr-btn-sm" onclick="openOrders()" aria-label="طلباتي السابقة" id="hdrOrders">
@@ -79,10 +78,10 @@
     <section id="home" class="sec">
       <!-- WELCOME CARD (نبذة) -->
       <div class="intro-card">
-        <h2 class="intro-title">زبائننا الكرام ☕</h2>
-        <p class="intro-copy">تأسس
-          منذ عام 1993، مقهى ابو حالوب يجمع بين الأصالة والفخامة ليقدّم تجربة مميزة بطابع عصري. نقدم نخبة من الأطباق
-          الشرقية والمشويات الطازجة مع مشروبات متنوعة تُرضي جميع الأذواق.</p>
+        <h2 class="intro-title">زبائننا الكرام 🌹</h2>
+        <p class="intro-copy">أهلاً بكم في
+          مطعم روزا — نجمع بين الأصالة والفخامة لنقدّم لكم تجربة مميزة بطابع عصري، مع نخبة من الأطباق الطازجة
+          والمشروبات المتنوعة التي تُرضي جميع الأذواق.</p>
         <p class="intro-copy">أجواؤنا
           صُممت بعناية لتكون راقية ومريحة، تجمع بين الهدوء واللمسة الشبابية لتناسب جميع أوقاتكم.</p>
         <p class="intro-note">
@@ -281,47 +280,16 @@
       <div class="fm-title">إكمال الطلب 📝</div>
       <div class="fm-saved" id="custStatus" style="display:none"></div>
       <div class="fm-grp">
-        <label>الفرع</label>
-        <select id="custBranch" onchange="updateBranchInfo(this.value)">
-          <option value="بسماية" selected>فرع بسماية</option>
-        </select>
-        <div id="branchAddress" class="fm-hint" style="margin-top:8px; display:none;"></div>
-      </div>
-      <div class="fm-grp">
         <label>الاسم الكريم <span style="color:#c0392b">*</span></label>
         <input type="text" id="custName" placeholder="مثال: أحمد عبد الله">
       </div>
       <div class="fm-grp">
-        <label>المنطقة</label>
-        <select id="custArea" disabled>
-          <option value="بسماية" selected>بسماية</option>
-        </select>
+        <label>المنطقة / الحي <span style="color:#c0392b">*</span></label>
+        <input type="text" id="custArea" placeholder="مثال: شارع فلسطين، زيونة، الكرادة...">
       </div>
       <div class="fm-grp">
-        <label>البلوك <span style="color:#c0392b">*</span></label>
-        <select id="custBlock" onchange="toggleBlockDetails(this.value)">
-          <option value="">اختر البلوك...</option>
-          <option value="A">A</option>
-          <option value="B">B</option>
-        </select>
-      </div>
-      <div id="blockDetails" style="display:none">
-        <div class="fm-grp">
-          <label>رقم البلوك <span style="color:#c0392b">*</span></label>
-          <input type="number" id="custBlockNum" placeholder="مثال: 5" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
-        </div>
-        <div class="fm-grp">
-          <label>البناية <span style="color:#c0392b">*</span></label>
-          <input type="number" id="custBuilding" placeholder="مثال: 12" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
-        </div>
-        <div class="fm-grp">
-          <label>الطابق <span style="color:#c0392b">*</span></label>
-          <input type="number" id="custFloor" placeholder="مثال: 2" inputmode="numeric" min="0" dir="ltr" style="text-align:right">
-        </div>
-        <div class="fm-grp">
-          <label>رقم الشقة <span style="color:#c0392b">*</span></label>
-          <input type="text" id="custApt" placeholder="مثال: 3 أو G" inputmode="text" dir="ltr" style="text-align:right">
-        </div>
+        <label>العنوان التفصيلي / أقرب نقطة دالة <span style="color:#c0392b">*</span></label>
+        <input type="text" id="custAddress" placeholder="مثال: قرب ساحة بيروت، زقاق 12، دار 5">
       </div>
       <div class="fm-grp">
         <label>رقم الهاتف <span style="color:#c0392b">*</span></label>
@@ -359,33 +327,21 @@
   <!-- Firebase SDK — في نهاية الصفحة حتى لا يعطّل أول رسم للواجهة -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-  <script src="firebase-config.js"></script>
+  <script src="firebase-config.js?v=roza1"></script>
   <script>
     /* ─────────────────────────────────────────────────────
        DYNAMIC SUGGESTIONS MAP
        ───────────────────────────────────────────────── */
-    const SUGGEST_MAP = {
-      sandwiches: ['drinks', 'plates'],
-      rolls: ['drinks', 'plates'],
-      meals: ['drinks'],
-      lamma: ['drinks', 'plates'],
-      plates: ['drinks', 'mansaf'],
-      mansaf: ['drinks'],
-      weights: ['drinks'],
-      drinks: ['sandwiches', 'rolls'],
-    };
+    /* اقتراحات الأقسام — تُضاف يدوياً عند الحاجة: { 'قسم': ['قسم مقترح'] } */
+    const SUGGEST_MAP = {};
     let CATS = [];
     let DB = {};
+    let menuArrived = false;   // هل وصلتنا بيانات المنيو (ولو فارغة)؟
     let EVENTS = [];          // أمسياتنا
     let HOURS = null;         // أوقات العمل { open, close, enabled }
 
-    // الترتيب الثابت للأقسام: المأكولات ← الباريستا والحلويات ← المشروبات ← الأراكيل
-    const CAT_ORDER = [
-      'masgouf','chicken','grills','burgers','sandwiches','cold_starters','hot_starters',
-      'hot_drinks','ice_coffee','sweets','fruits_cakes','pancakes','waffles','ice_cream',
-      'juices','mojito','smoothies','milkshake','soft_drinks','energy_drinks',
-      'hookah'
-    ];
+    // ترتيب الأقسام يأتي من لوحة الإدارة (حقل order لكل قسم)
+    const CAT_ORDER = [];
     // رتبة القسم: نحترم ترتيب المدير (order) إن وُجد، وإلا الترتيب الافتراضي
     function catRank(c) {
       if (c && typeof c.order === 'number' && Number.isFinite(c.order)) return c.order;
@@ -412,7 +368,7 @@
         return;
       }
 
-      const dbRef = firebase.database().ref('h3alb_menu');
+      const dbRef = firebase.database().ref('roza_menu');
 
       // مستمع واحد يكفي: يعطينا البيانات أول مرة ثم أي تعديل من لوحة الإدارة.
       // (كان قبله نداء once إضافي = طلب شبكة ورسم كامل مضاعف بلا فائدة)
@@ -423,6 +379,7 @@
     }
 
     function loadFromData(data, fromCloud = false) {
+      menuArrived = true;
       // Robustness check: if data is empty or missing items, try to fallback to initialData
       let finalData = data;
       const hasItems = data && data.items && (Array.isArray(data.items) ? data.items.length > 0 : Object.keys(data.items).length > 0);
@@ -615,22 +572,37 @@
       document.querySelectorAll('.sec').forEach(s => secObs.observe(s));
     }
 
-    const FEAT = [
-      { id: 1001, name: 'سمك مسكوف عراقي', tag: 'المسكوف البغدادي الأصيل', price: 15000, col: 'linear-gradient(135deg,#17261f,#8a5638)' },
-      { id: 2001, name: 'دجاج مشوي بالتنور', tag: 'مشوي على حطب الحمضيات', price: 15000, col: 'linear-gradient(135deg,#263e31,#b84336)' },
-      { id: 3001, name: 'نفر كباب لحم عراقي', tag: 'لحم بلدي عراقي فاخر', price: 15000, col: 'linear-gradient(135deg,#2b241d,#9b6a3c)' },
-      { id: 4002, name: 'بركر لحم بالجبن', tag: 'برجر كلاسيكي بالجبنة السائحة', price: 6500, col: 'linear-gradient(135deg,#1a2b32,#b88746)' }
+    /* المميزات — ما عاد فيها أصناف مكتوبة بالكود. تُبنى تلقائياً من الأصناف
+       التي يعلّمها المدير بشارة «جديد» في لوحة الإدارة، وإن ما وُجد شي
+       يختفي القسم كله بدل ما يظهر فارغاً. */
+    const FEAT_COLORS = [
+      'linear-gradient(135deg,#521823,#7c2a38)',
+      'linear-gradient(135deg,#2a211c,#b8893f)',
+      'linear-gradient(135deg,#7c2a38,#b8893f)',
+      'linear-gradient(135deg,#17110f,#7a5a2c)'
     ];
+    let FEAT = [];
+    function buildFeatured() {
+      const all = [];
+      CATS.forEach(c => (DB[c.id] || []).forEach(it => all.push(it)));
+      FEAT = all.filter(it => it && it.badge === 'new').slice(0, 4).map((it, i) => ({
+        id: it.id,
+        name: it.name,
+        tag: (it.desc || '').slice(0, 60),
+        price: it.price,
+        col: FEAT_COLORS[i % FEAT_COLORS.length]
+      }));
+    }
 
     /* ══════════════════════════════════════════════════════════
        STORE — طبقة الذاكرة على جهاز الزبون
-       كل شيء يُحفظ تحت مسمّى واحد (h3alb:*) بنسخة ووقت، حتى نقدر
+       كل شيء يُحفظ تحت مسمّى واحد (roza:*) بنسخة ووقت، حتى نقدر
        نطوّر الشكل مستقبلاً بدون ما نخرب ذاكرة الزبائن القدماء.
        تتحمّل: التخزين المرفوض (وضع التصفح الخاص)، الذاكرة الممتلئة،
        والبيانات المعطوبة — بدون ما يطيح الموقع.
     ══════════════════════════════════════════════════════════ */
     const Store = {
-      NS: 'h3alb:',
+      NS: 'roza:',
       VER: 2,
       ok: true,                                   // هل التخزين متاح على هذا الجهاز؟
 
@@ -682,22 +654,6 @@
           localStorage.removeItem(this.NS + '__t');
         } catch (e) { this.ok = false; return; }
 
-        // ترقية من مفاتيح النسخة الأولى إلى الشكل الموحّد
-        const legacy = [
-          ['h3alb_cart_v1', 'cart', o => (o && Array.isArray(o.items)) ? o.items : null],
-          ['h3alb_customer_v1', 'customer', o => (o && typeof o === 'object') ? o : null]
-        ];
-        legacy.forEach(([oldKey, newKey, pick]) => {
-          try {
-            const raw = localStorage.getItem(oldKey);
-            if (!raw) return;
-            if (localStorage.getItem(this.k(newKey)) === null) {
-              const val = pick(JSON.parse(raw));
-              if (val) this.set(newKey, val, newKey === 'cart' ? CART_TTL : 0);
-            }
-            localStorage.removeItem(oldKey);
-          } catch (e) { try { localStorage.removeItem(oldKey); } catch (e2) {} }
-        });
       }
     };
 
@@ -827,6 +783,8 @@
     let cart = loadCart();
     let favs = loadFavs();
     const DELIVERY_FEE = 1000; // أجور التوصيل: ألف دينار عراقي تُضاف عند الطلب أونلاين
+    // رقم واتساب المطعم الذي تصله الطلبات (بصيغة دولية بدون +)
+    const RESTAURANT_WA = '9647725066600';
     let modalItem = null;
     let flavorItem = null;    // الصنف الذي ينتظر اختيار الطعم
     let flavorPick = null;    // الطعم المختار حالياً
@@ -886,165 +844,11 @@
       return '';
     }
 
-    const CATEGORY_IMAGES = {
-      masgouf: 'https://images.unsplash.com/photo-1534482421-64566f976cfa?w=600&q=80',
-      chicken: 'https://images.unsplash.com/photo-1598103442097-8b743e2b95c6?w=600&q=80',
-      grills: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=600&q=80',
-      burgers: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=600&q=80',
-      sandwiches: 'https://images.unsplash.com/photo-1626700051175-6518c4793f4f?w=600&q=80',
-      cold_starters: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=80',
-      hot_starters: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?w=600&q=80',
-      soft_drinks: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
-      energy_drinks: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=600&q=80',
-      fruits_cakes: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
-      mojito: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
-      pancakes: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
-      smoothies: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
-      hot_drinks: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?w=600&q=80',
-      milkshake: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
-      sweets: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
-      ice_coffee: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
-      ice_cream: 'https://images.unsplash.com/photo-1572490122747-3968b75cc699?w=600&q=80',
-      juices: 'https://images.unsplash.com/photo-1536935338788-846bb9981813?w=600&q=80',
-      waffles: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?w=600&q=80',
-      hookah: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=600&q=80'
-    };
-
-    /* ── LOCAL IMAGES (WebP) ──
-       صور حقيقية محلية لأبو حالوب. لها الأولوية على صور الإنترنت.
-       المفتاح = اسم الصنف بالضبط. أي صنف غير مذكور يبقى على صورة الإنترنت. */
-    const LOCAL_IMG = {
-      'سمك مسكوف كيلو': 'مسكوف.webp',
-      'دجاج مشوي بالتنور': 'دجاج تنور.webp',
-      'نص دجاج مشوي بالتنور': 'دجاج تنور.webp',
-      'دجاج مسحب مشوي على الفحم': 'مسحب.webp',
-      'نفر كباب لحم': 'نفر كباب لحم.webp',
-      'نفر كباب دجاج': 'نفر كباب دجج.webp',
-      'نفر تكة لحم': 'تكه لحم.webp',
-      'نفر تكة دجاج': 'تكه دجاج.webp',
-      'نفر تكة لحم ملفوف': 'تكه لحم.webp',
-      'نفر معلاك': 'معلاك.webp',
-      'نفر قلب': 'قلب.webp',
-      'عرايس لحم': 'عرايس.webp',
-      'عرايس دجاج': 'عرايس.webp',
-      'نفر اجنحة': 'اجنحة.webp',
-      'ساندويش شاورما لحم': 'شاورما.webp',
-      'ساندويش شاورما دجاج': 'شاورما.webp',
-      'ساندويش فاهيتا دجاج': 'فاهيتا.webp',
-      'ساندويش سكالوب دجاج': 'سكالوب دجاج.webp',
-      'ساندويش شيش طاووق': 'شيش طاووق.webp',
-      'بورك لحم': 'بورك.webp',
-      'كبة حلب': 'كبة حلب.webp',
-      'كبة طرابلسية': 'كبة طرابلسية.webp',
-      'بركر لحم كلاسيك': 'بركر كلاسيك.webp',
-      'بركر لحم بالجبن': 'بركر بل جبن.webp',
-      'بركر لحم بالمشروم': 'بركر لحم بل مشروم.webp',
-      'كنافة جبن': 'كنافه.webp',
-      'كنافة بستاشيو': 'كنافه بستاشيو.webp',
-      'كنافة نوتيلا': 'كنافه شوكلاتة.webp',
-      'كيك': 'كيك.webp',
-      'كيك سان سيباستيان': 'تشيز كيك.webp',
-      'كيك براونيز': 'براونيز.webp',
-      'طبق فواكة': 'فواكه.webp',
-      'طبق فواكة سبشل': 'فواكه.webp',
-      'قهوه تركية': 'قهوه.webp',
-      'قهوه تركية دبل': 'قهوه.webp',
-      'قهوه جكليتية': 'قهوه.webp',
-      'امريكانو كافيه': 'قهوه.webp',
-      'اسبريسو': 'ابو حالوب اسبريسو.webp',
-      'اسبريسو دبل': 'ابو حالوب اسبريسو.webp',
-      'سحلب': 'سحلب.webp',
-      'شاي عراقي': 'جاي.webp',
-      'شاي حليب': 'جاي وحليب.webp',
-      'شاي بالنعناع': 'جاي ونعناع.webp',
-      'شاي بالليمون': 'جاي وليمون.webp',
-      'شوكولا ساخنة': 'هوت تشوكليت.webp',
-      'ايس كابتشينو': 'ايس كابتشينو.webp',
-      'ايس لاتيه': 'ايس لاتيه حالوب.webp',
-      'موهيتو انناس': 'موهيتو انناس.webp',
-      'موهيتو ليمون ونعناع': 'موهيتو ليمون.webp',
-      'موهيتو ببلز': 'موهيتو ببلز.webp',
-      'موهيتو خوخ': 'موهيتو خوخ.webp',
-      'موهيتو جوز هند': 'موهيتو جوز الهند.webp',
-      'موهيتو استوائي': 'موهيتو استوائي.webp',
-      'موهيتو ستروبري بلو': 'موهيتو فراولة.webp',
-      'موهيتو ستروبري': 'موهيتو فراولة.webp',
-      'موهيتو رقي': 'موهيتو ركي.webp',
-      'موهيتو ليمون': 'موهيتو ليمون.webp',
-      'موهيتو كيوي': 'موهيتو كيوي.webp',
-      'موهيتو منغا': 'موهيتو منغا.webp',
-      'بان كيك فواكه': 'بانكيك فواكه.webp',
-      'بان كيك لوتس': 'بانكيك لوتس.webp',
-      'بان كيك اوريو': 'بانكيك اريو.webp',
-      'سموذي برتقال': 'عصير برتقال.webp',
-      'سموذي فراولة': 'عصير فراولة.webp',
-      'سموذي انناس': 'عصير انانس.webp',
-      'سموذي رمان': 'عصير رمان.webp',
-      'سموذي منكا': 'عصير منكا.webp',
-      'سموذي ستروبري بلو': 'عصير فراولة.webp',
-      'ميلك شيك لوتس': 'ميلك شيلك لوتس.webp',
-      'ميلك شيك شوكولا': 'ميلك شيلك نوتيلا شوكلات.webp',
-      'ميلك شيك بستاشيو': 'ميلك شيلك بستاششيو.webp',
-      'ميلك شيك فريز': 'ميلك شيلر فريز.webp',
-      'ميلك شيك جوز هند': 'ميلك شيلك جوز الهند.webp',
-      'كريب مكس': 'كريب مكس عادي.webp',
-      'كريب تربل مكس': 'كريب تربل مكس.webp',
-      'كريب فواكه': 'كريب فواكه.webp',
-      'كريب فوتشيني': 'كريب فوتشيني.webp',
-      'كريب مارشميلو': 'كريب مارشميلو.webp',
-      'كريب اوريو': 'كريب اوريو.webp',
-      'كريب لوتس': 'كريب لوتس.webp',
-      'كريب سوشي': 'كريب سوشي.webp',
-      'كريب ايس كريم': 'كريم ايسكريم.webp',
-      'كريب براونيز': 'كريب براونيز.webp',
-      'كريب كندر': 'كريب كندر.webp',
-      'كريب مكسرات': 'كريب مكسرات.webp',
-      'كريب بنانا رول': 'كريب بنانا رول.webp',
-      'ايس كريم 3 بول': 'ايسكريم 3.webp',
-      'ايس كريم توتي فروتي': 'ايسكريم 3.webp',
-      'ايس كريم سبشيل': 'ايسكريم سبيشيل.webp',
-      'عصير برتقال': 'عصير برتقال.webp',
-      'عصير ليمون': 'عصير ليمون.webp',
-      'عصير موز': 'عصير موز.webp',
-      'عصير انناس': 'عصير انانس.webp',
-      'عصير فراولة': 'عصير فراولة.webp',
-      'عصير بطيخ': 'عصير بطيخ.webp',
-      'عصير رقي': 'عصير ركي.webp',
-      'عصير ليمون نعناع': 'عصير ليمون.webp',
-      'عصير موز نستلة': 'موز ونستلة.webp',
-      'عصير منكا': 'عصير منكا.webp',
-      'عصير رمان': 'عصير رمان.webp',
-      'عصير افوكادو بالليمون': 'افكادو وليمون.webp',
-      'وافل شوكولا': 'وافل بل شوكلاته.webp',
-      'وافل بلاك': 'وافل بلاك.webp',
-      'وافل كندر': 'وافل كندر.webp',
-      'وافل مكسرات': 'وافل مكسرات.webp',
-      'وافل لوتس': 'وافل لوتس.webp',
-      'وافل اوريو': 'وافل اريو.webp',
-      'وافل فواكه': 'وافل فواكه.webp',
-      'كبدة بدبس الرمان': 'كبدة بدبس الرمان.webp',
-      'بيبسي': 'بيبسي.webp',
-      'سفن اب': 'سفن اب.webp',
-      'لبن بنعناع': 'لبن بنعناع.webp',
-      'ماء': 'ماء.webp',
-      'مشروب طاقة': 'مشروب طاقة.webp',
-      'مكسيكي': 'مكسيكي.webp',
-      'سموذي سكاي': 'سموذي سكاي.webp',
-      'ايس كرمل ميكاتو': 'ايس كرمل ميكاتو.webp',
-      'ايس امريكانو': 'ايس امريكانو.webp',
-      'عصير على بالك': 'عصير على بالك.webp'
-    };
-
-    /* صورة محلية على مستوى القسم كامل (تُستخدم لأي صنف ماكو إله صورة خاصة) */
-    const LOCAL_CAT_IMG = {
-      'chicken': 'دجاج.webp',
-      'cold_starters': 'مقبلات وسط.webp',
-      'mojito': 'موهيتو.webp',
-      'pancakes': 'بانكيك.webp',
-      'sweets': 'كريب.webp',
-      'waffles': 'وافل.webp',
-      'hookah': 'اركيلة.webp'
-    };
+    /* صور الأصناف تأتي من لوحة الإدارة. هذه الخرائط تُترك فارغة
+       ويمكن تعبئتها لاحقاً لو انراد ربط صور محلية بأسماء أصناف. */
+    const CATEGORY_IMAGES = {};
+    const LOCAL_IMG = {};
+    const LOCAL_CAT_IMG = {};
 
     /* الأولوية: صورة الصنف من قاعدة البيانات/الإدارة (المصدر الموثوق) ←
        ثم خرائط الصور المحلية كاحتياط ← ثم صورة القسم من الإنترنت.
@@ -1185,13 +989,24 @@
     function renderPopular() {
       const popG = document.getElementById('popG');
       if (!popG) return;
+      const popHead = document.getElementById('popHead');
       const picks = pickPopular();
       if (!picks.length) {
-        if (!popG.innerHTML || popG.innerHTML.includes('skeleton')) {
+        /* المنيو لسه ما وصل: نعرض هياكل تحميل.
+           المنيو وصل وهو فارغ (ما ضاف المدير أصناف بعد): نخفي القسم
+           كله بدل ما يضل يدور بهياكل تحميل بلا نهاية. */
+        const menuLoaded = CATS.length > 0 || menuArrived;
+        if (menuLoaded) {
+          popG.innerHTML = '';
+          popG.style.display = 'none';
+          if (popHead) popHead.style.display = 'none';
+        } else if (!popG.innerHTML || popG.innerHTML.includes('skeleton')) {
           popG.innerHTML = Array(3).fill('<div class="ic skeleton" style="height:210px;border-radius:24px;opacity:0.5"></div>').join('');
         }
         return;
       }
+      popG.style.display = '';
+      if (popHead) popHead.style.display = '';
       popG.innerHTML = picks.map((it, i) => rCard(it, i * .05)).join('');
       setTimeout(initReveal, 30);
     }
@@ -1265,6 +1080,22 @@
     }
 
     function renderFeatured() {
+      buildFeatured();
+
+      // ما في أصناف مميزة؟ نخفي العنوان والشريط والزخرفة بدل فراغ بلا معنى
+      const featHead = document.getElementById('featHead');
+      const featWrap = document.getElementById('featWrap');
+      const featOrn  = document.getElementById('featOrn');
+      const show = FEAT.length > 0 ? '' : 'none';
+      if (featHead) featHead.style.display = show;
+      if (featWrap) featWrap.style.display = show;
+      if (featOrn)  featOrn.style.display  = show;
+      if (!FEAT.length) {
+        document.getElementById('featS').innerHTML = '';
+        document.getElementById('dots').innerHTML = '';
+        return;
+      }
+
       // featured slider
       document.getElementById('featS').innerHTML = FEAT.map((f, idx) => {
         const featuredItem = getItem(f.id) || f;
@@ -1514,8 +1345,8 @@
     function addFromModal() { if (modalItem) { addToCart(modalItem.id); closeModal(); } }
 
     /* ── FLAVOR PICKER: أصناف اركيلة التوصيل تحتاج اختيار الطعم ── */
-    const FLAVOR_SRC_CAT = 'hookah';                    // مصدر النكهات: قسم الأراكيل
-    const FLAVOR_TARGET_CATS = ['cat_1783885219018'];   // أقسام تُلزم الزبون باختيار الطعم
+    const FLAVOR_SRC_CAT = 'hookah';   // مصدر النكهات: قسم الأراكيل إن وُجد
+    const FLAVOR_TARGET_CATS = [];     // أقسام تُلزم الزبون باختيار الطعم (تُضاف يدوياً)
 
     // هل هذا الصنف يحتاج اختيار طعم؟ (قسم اركيلة التوصيل)
     function needsFlavor(item) {
@@ -1947,7 +1778,7 @@
     /* ══════════════════════════════
        ذاكرة بيانات الزبون — ما يعيد كتابة الاسم والعنوان بكل طلب
     ══════════════════════════════ */
-    const CUST_FIELDS = ['custBranch', 'custName', 'custBlock', 'custBlockNum', 'custBuilding', 'custFloor', 'custApt', 'custPhone'];
+    const CUST_FIELDS = ['custName', 'custArea', 'custAddress', 'custPhone'];
 
     function saveCustomer() {
       if (!document.getElementById('custRemember')?.checked) { Store.del('customer'); return; }
@@ -2017,9 +1848,6 @@
         const el = document.getElementById(id);
         if (el && data[id]) el.value = data[id];
       });
-      // إظهار تفاصيل البلوك إن كان محفوظاً
-      toggleBlockDetails(document.getElementById('custBlock').value);
-      updateBranchInfo(document.getElementById('custBranch').value);
       renderCustStatus();
       return true;
     }
@@ -2049,12 +1877,8 @@
       Store.del('customer');
       CUST_FIELDS.forEach(id => {
         const el = document.getElementById(id);
-        if (!el) return;
-        // الفرع والمنطقة ثابتة — نتركها على قيمتها الافتراضية
-        if (id === 'custBranch' || id === 'custArea') return;
-        el.value = '';
+        if (el) el.value = '';
       });
-      toggleBlockDetails('');
       renderCustStatus();
       showToast('انمسحت معلوماتك المحفوظة');
     }
@@ -2194,34 +2018,10 @@
     function closeForm() { document.getElementById('fov').classList.remove('on'); }
     function closeFormOv(e) { if (e.target === document.getElementById('fov')) closeForm(); }
 
-    function toggleBlockDetails(v) {
-      document.getElementById('blockDetails').style.display = v ? 'block' : 'none';
-    }
-
-    function updateBranchInfo(v) {
-      const addressEl = document.getElementById('branchAddress');
-      const branchAddresses = {
-        'بسماية': '📍 فرع بسماية | 07753203030'
-      };
-
-      if (branchAddresses[v]) {
-        addressEl.textContent = branchAddresses[v];
-        addressEl.style.display = 'block';
-        addressEl.style.color = 'var(--tan-dk)';
-      } else {
-        addressEl.style.display = 'none';
-      }
-    }
-
     function sendOrder() {
-      const branch = document.getElementById('custBranch').value;
-      const area = document.getElementById('custArea').value;
       const name = document.getElementById('custName').value.trim();
-      const block = document.getElementById('custBlock').value;
-      const blockNum = document.getElementById('custBlockNum').value.trim();
-      const building = document.getElementById('custBuilding').value.trim();
-      const floor = document.getElementById('custFloor').value.trim();
-      const apt = document.getElementById('custApt').value.trim();
+      const area = document.getElementById('custArea').value.trim();
+      const address = document.getElementById('custAddress').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
 
       const notes = (document.getElementById('custNotes')?.value || '').trim();
@@ -2243,13 +2043,9 @@
         showToast(msg); focusField(id); return true;
       };
 
-      if (need(branch, 'custBranch', 'يرجى اختيار الفرع!')) return;
       if (need(name, 'custName', 'يرجى إدخال اسمك!')) return;
-      if (need(block, 'custBlock', 'يرجى اختيار البلوك!')) return;
-      if (need(blockNum, 'custBlockNum', 'يرجى إدخال رقم البلوك!')) return;
-      if (need(building, 'custBuilding', 'يرجى إدخال رقم البناية!')) return;
-      if (need(floor, 'custFloor', 'يرجى إدخال الطابق!')) return;
-      if (need(apt, 'custApt', 'يرجى إدخال رقم الشقة!')) return;
+      if (need(area, 'custArea', 'يرجى إدخال المنطقة!')) return;
+      if (need(address, 'custAddress', 'يرجى إدخال العنوان التفصيلي!')) return;
       if (need(phone, 'custPhone', 'يرجى إدخال رقم الهاتف!')) return;
 
       // رقم عراقي: ١١ رقماً يبدأ بـ 07 — نتحقق حتى لا يضيع الطلب برقم غلط
@@ -2260,10 +2056,6 @@
         return;
       }
 
-      const branchNumbers = {
-        'بسماية': '9647753203030'
-      };
-
       const now = new Date();
       let h = now.getHours(), m = now.getMinutes();
       const ampm = h >= 12 ? 'م' : 'ص';
@@ -2272,14 +2064,13 @@
 
       const orderNo = nextOrderNo();
       const line = '━━━━━━━━━━━━━━';
-      let msg = `🟢 *مقهى أبو حالوب — طلب جديد*\n`;
+      let msg = `🌹 *مطعم روزا — طلب جديد*\n`;
       msg += `🔖 *رقم الطلب:* ${orderNo}\n`;
       msg += `${line}\n`;
       msg += `👤 *الاسم:* ${name}\n`;
       msg += `📞 *الهاتف:* ${digits}\n`;
-      msg += `🏬 *الفرع:* ${branch}\n`;
       msg += `🏙️ *المنطقة:* ${area}\n`;
-      msg += `📍 *العنوان:* بلوك ${block} - رقم البلوك ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}\n`;
+      msg += `📍 *العنوان:* ${address}\n`;
       msg += `🕐 *الوقت:* ${timeStr}\n`;
       msg += `${line}\n`;
       msg += `🧾 *تفاصيل الطلب:*\n`;
@@ -2301,9 +2092,7 @@
         msg += `📍 *موقع الزبون على الخريطة:*\n${customerLoc.link}\n`;
       }
 
-      const resNumber = branchNumbers[branch];
-      if (!resNumber) { showToast('رقم هذا الفرع غير متاح حالياً، يرجى اختيار فرع آخر.'); return; }
-      const waUrl = `https://wa.me/${resNumber}?text=${encodeURIComponent(msg)}`;
+      const waUrl = `https://wa.me/${RESTAURANT_WA}?text=${encodeURIComponent(msg)}`;
 
       saveCustomer();     // نحفظ بياناته للطلب القادم
 
@@ -2316,8 +2105,8 @@
         sub: totalP(),
         fee: DELIVERY_FEE,
         total: totalP() + DELIVERY_FEE,
-        branch, area,
-        address: `بلوك ${block} - رقم ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}`,
+        area,
+        address,
         notes
       });
       saveOrders(orders);

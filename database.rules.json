@@ -1,6 +1,6 @@
 {
   "rules": {
-    "h3alb_menu": {
+    "roza_menu": {
       ".read": true,
       ".write": "auth != null",
       "categories": {
