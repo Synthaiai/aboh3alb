@@ -28,6 +28,34 @@
         ".write": "auth != null"
       }
     },
+    "abo_menu": {
+      ".read": true,
+      ".write": "auth != null",
+      "categories": {
+        "$categoryId": {
+          ".validate": "newData.hasChildren(['id', 'name']) && newData.child('id').isString() && newData.child('id').val().matches(/^[A-Za-z0-9_-]{1,64}$/) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 80"
+        }
+      },
+      "items": {
+        "$itemId": {
+          ".validate": "newData.hasChildren(['id', 'cat', 'name', 'price']) && (newData.child('id').isString() || newData.child('id').isNumber()) && newData.child('cat').isString() && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 120 && newData.child('price').isNumber() && newData.child('price').val() >= 0"
+        }
+      },
+      "events": {
+        "$eventId": {
+          ".validate": "newData.hasChildren(['id', 'name']) && newData.child('id').isString() && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 120"
+        }
+      },
+      "settings": {
+        "hours": {
+          ".validate": "newData.hasChildren(['open', 'close']) && newData.child('open').isString() && newData.child('close').isString()"
+        }
+      },
+      "connection_test": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
     ".read": false,
     ".write": false
   }

@@ -658,8 +658,8 @@
                         <i class="ph-bold ph-arrow-counter-clockwise"></i> استرجاع المنيو
                     </div>
                     <p style="font-size:12.5px; color:#14532d; line-height:1.6; margin-bottom:10px;">
-                        يرجّع النسخة المحفوظة: <b>18 قسم و75 صنف</b> بأسمائها وأسعارها وصورها.
-                        يكتب فوق الموجود حالياً، فاستعمله إذا انمسح المنيو بالغلط.
+                        يعبّي منيو <b>هذا الموقع</b> من النسخة المحفوظة: <b>18 قسم و75 صنف</b> بأسمائها
+                        وأسعارها وصورها. يكتب فوق الموجود هنا فقط — ما يمس أي موقع ثاني.
                     </p>
                     <button type="button" class="btn" style="background:#16a34a; color:#fff; width:100%;" onclick="restoreMenu()" id="restoreBtn">
                         <i class="ph-bold ph-arrow-counter-clockwise"></i> استرجع المنيو المحفوظ
@@ -672,8 +672,8 @@
                         <i class="ph-bold ph-warning-octagon"></i> تفريغ المنيو بالكامل
                     </div>
                     <p style="font-size:12.5px; color:#7f1d1d; line-height:1.6; margin-bottom:10px;">
-                        يحذف <b>كل الأقسام وكل الأصناف</b> من قاعدة البيانات نهائياً.
-                        <br><b>انتبه:</b> المنيو مشترك بين <b>كل</b> روابط الموقع — الحذف يأثر عليها كلها مو على واحد بس.
+                        يحذف <b>كل الأقسام وكل الأصناف</b> من منيو هذا الموقع نهائياً، ويخلّيه صفحة
+                        بيضاء تبني عليها من جديد. ما يمس المواقع الثانية، بس ما تنرجع بعد الحذف.
                     </p>
                     <button type="button" class="btn" style="background:#dc2626; color:#fff; width:100%;" onclick="wipeMenu()">
                         <i class="ph-bold ph-trash"></i> احذف كل الأقسام والأصناف
@@ -940,7 +940,7 @@
                 alert("برجاء الانتظار حتى يتم تحميل ملف الاعدادات");
                 return;
             }
-            const testRef = firebase.database().ref('roza_menu/connection_test');
+            const testRef = firebase.database().ref('abo_menu/connection_test');
             const testData = { timestamp: Date.now(), status: "working" };
             
             alert("بدء فحص الاتصال... يرجى الانتظار ثواني.");
@@ -1203,7 +1203,7 @@
 
         async function restoreMenu() {
             const btn = document.getElementById('restoreBtn');
-            if (!confirm('راح يرجع المنيو المحفوظ (18 قسم و75 صنف) ويكتب فوق الموجود حالياً. تكمل؟')) return;
+            if (!confirm('راح يتعبّى منيو هذا الموقع بالنسخة المحفوظة (18 قسم و75 صنف) ويكتب فوق الموجود. تكمل؟')) return;
             if (btn) { btn.disabled = true; btn.textContent = 'جاري التحميل...'; }
             try {
                 const seed = await loadMenuBackup();
@@ -1535,7 +1535,7 @@
                 document.getElementById('statusTxt').innerText = "خطأ في الاتصال!";
                 return;
             }
-            db = firebase.database().ref('roza_menu');
+            db = firebase.database().ref('abo_menu');
             
             // Listen to Categories
             db.child('categories').on('value', snap => {
