@@ -821,63 +821,26 @@
            بنفس هذا البريد وكلمة مرور قوية. المدير يدخل بكلمة المرور فقط. */
         const ADMIN_EMAIL = 'nobweb2@gmail.com';
 
-        const MAX_ATTEMPTS = 4;
-        const LOCK_MS      = 6 * 60 * 60 * 1000;   // قفل 6 ساعات
-        const LOCK_KEY     = 'roza_lock';          // يُخزَّن بـ localStorage فيصمد بعد إعادة تحميل الصفحة
+        /* ماكو قفل عند الخطأ: كلمة المرور الغلط تعطي رسالة وبس، والمحاولة
+           تنعاد فوراً بلا حد ولا انتظار. الحماية الحقيقية عند فايربيس نفسه. */
         const SESSION_UNTIL_KEY = 'adminAuthUntil';
         const SESSION_MS = 45 * 60 * 1000;
 
         function loginBtn() { return document.querySelector('.login-card button'); }
 
-        function getLock() {
-            try { return JSON.parse(localStorage.getItem(LOCK_KEY)) || { count: 0, lockUntil: 0 }; }
-            catch (e) { return { count: 0, lockUntil: 0 }; }
-        }
-        function setLock(o) { localStorage.setItem(LOCK_KEY, JSON.stringify(o)); }
-
-        function lockRemaining() {
-            const lock = getLock();
-            return (lock.lockUntil && Date.now() < lock.lockUntil) ? lock.lockUntil - Date.now() : 0;
-        }
-        function fmtRemaining(ms) {
-            const min = Math.ceil(ms / 60000);
-            const h = Math.floor(min / 60), m = min % 60;
-            return h > 0 ? `${h} ساعة و ${m} دقيقة` : `${m} دقيقة`;
-        }
-
-        // يطبّق حالة القفل على الواجهة (يُستدعى عند التحميل وبعد كل محاولة)
+        /* تُبقي خانة كلمة المرور والزر شغّالين دائماً — بديل عن منطق القفل القديم،
+           ونناديها بنفس الأماكن حتى لو بقي قفل قديم محفوظ بجهاز أحد ما يعطّله. */
         function enforceLockUI() {
-            const remaining = lockRemaining();
             const input = document.getElementById('adminPass');
             const btn   = loginBtn();
-            if (remaining > 0) {
-                if (input) input.disabled = true;
-                if (btn) { btn.disabled = true; btn.textContent = 'مقفل 🔒'; }
-                showErr(`🔒 الدخول مقفل بسبب محاولات خاطئة كثيرة. حاول بعد ${fmtRemaining(remaining)}.`);
-                return true;
-            }
             if (input) input.disabled = false;
             if (btn) { btn.disabled = false; btn.textContent = 'دخول'; }
+            try { localStorage.removeItem('roza_lock'); } catch (e) {}
+            try { localStorage.removeItem('h3alb_lock'); } catch (e) {}
             return false;
         }
 
-        function registerFailedAttempt() {
-            const lock = getLock();
-            lock.count = (lock.count || 0) + 1;
-            if (lock.count >= MAX_ATTEMPTS) {
-                lock.lockUntil = Date.now() + LOCK_MS;      // 4 محاولات → قفل 6 ساعات
-                setLock(lock);
-                enforceLockUI();
-                showErr(`🔒 استنفدت ${MAX_ATTEMPTS} محاولات! تم قفل الدخول 6 ساعات (يبقى القفل حتى بعد إعادة تحميل الصفحة).`);
-            } else {
-                setLock(lock);
-                showErr(`كلمة المرور خاطئة! تبقى لك ${MAX_ATTEMPTS - lock.count} محاولة/محاولات قبل القفل 6 ساعات.`);
-            }
-        }
-
         async function checkPass() {
-            if (enforceLockUI()) return;   // الدخول مقفل حالياً
-
             const input = document.getElementById('adminPass');
             const val   = input.value || '';
             if (!val) { showErr('يرجى إدخال كلمة المرور.'); return; }
@@ -893,7 +856,6 @@
             try {
                 await firebase.auth().signInWithEmailAndPassword(ADMIN_EMAIL, val);
                 // النجاح: onAuthStateChanged سيكشف اللوحة ويحمّل البيانات
-                localStorage.removeItem(LOCK_KEY);
                 input.value = '';
             } catch (err) {
                 if (btn) { btn.disabled = false; btn.textContent = 'دخول'; }
@@ -907,8 +869,9 @@
                 } else if (code === 'auth/too-many-requests') {
                     showErr('🔒 محاولات كثيرة. انتظر قليلاً ثم أعد المحاولة.');
                 } else {
-                    // كلمة مرور خاطئة أو بيانات اعتماد غير صالحة → عدّ المحاولة
-                    registerFailedAttempt();
+                    // كلمة مرور خاطئة → رسالة فقط، والمحاولة تنعاد فوراً بلا قفل
+                    showErr('كلمة المرور خاطئة — جرّب مرة ثانية.');
+                    if (input) { input.value = ''; input.focus(); }
                 }
             }
         }
@@ -1792,7 +1755,7 @@
                     if (!db) init();
                 } else {
                     overlay.style.display = '';   // يرجع لقيمة CSS الافتراضية
-                    enforceLockUI();              // يطبّق القفل إن كان فعّالاً
+                    enforceLockUI();              // يضمن أن خانة الدخول شغّالة
                 }
             });
         })();
