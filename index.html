@@ -284,12 +284,36 @@
         <input type="text" id="custName" placeholder="مثال: أحمد عبد الله">
       </div>
       <div class="fm-grp">
-        <label>المنطقة / الحي <span style="color:#c0392b">*</span></label>
-        <input type="text" id="custArea" placeholder="مثال: شارع فلسطين، زيونة، الكرادة...">
+        <label>المنطقة</label>
+        <select id="custArea" disabled>
+          <option value="بسماية" selected>بسماية</option>
+        </select>
       </div>
       <div class="fm-grp">
-        <label>العنوان التفصيلي / أقرب نقطة دالة <span style="color:#c0392b">*</span></label>
-        <input type="text" id="custAddress" placeholder="مثال: قرب ساحة بيروت، زقاق 12، دار 5">
+        <label>البلوك <span style="color:#c0392b">*</span></label>
+        <select id="custBlock" onchange="toggleBlockDetails(this.value)">
+          <option value="">اختر البلوك...</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+      <div id="blockDetails" style="display:none">
+        <div class="fm-grp">
+          <label>رقم البلوك <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custBlockNum" placeholder="مثال: 5" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
+        </div>
+        <div class="fm-grp">
+          <label>البناية <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custBuilding" placeholder="مثال: 12" inputmode="numeric" min="1" dir="ltr" style="text-align:right">
+        </div>
+        <div class="fm-grp">
+          <label>الطابق <span style="color:#c0392b">*</span></label>
+          <input type="number" id="custFloor" placeholder="مثال: 2" inputmode="numeric" min="0" dir="ltr" style="text-align:right">
+        </div>
+        <div class="fm-grp">
+          <label>رقم الشقة <span style="color:#c0392b">*</span></label>
+          <input type="text" id="custApt" placeholder="مثال: 3 أو G" inputmode="text" dir="ltr" style="text-align:right">
+        </div>
       </div>
       <div class="fm-grp">
         <label>رقم الهاتف <span style="color:#c0392b">*</span></label>
@@ -1778,7 +1802,7 @@
     /* ══════════════════════════════
        ذاكرة بيانات الزبون — ما يعيد كتابة الاسم والعنوان بكل طلب
     ══════════════════════════════ */
-    const CUST_FIELDS = ['custName', 'custArea', 'custAddress', 'custPhone'];
+    const CUST_FIELDS = ['custName', 'custBlock', 'custBlockNum', 'custBuilding', 'custFloor', 'custApt', 'custPhone'];
 
     function saveCustomer() {
       if (!document.getElementById('custRemember')?.checked) { Store.del('customer'); return; }
@@ -1848,6 +1872,8 @@
         const el = document.getElementById(id);
         if (el && data[id]) el.value = data[id];
       });
+      // إظهار تفاصيل البلوك إن كان محفوظاً
+      toggleBlockDetails(document.getElementById('custBlock').value);
       renderCustStatus();
       return true;
     }
@@ -1879,6 +1905,7 @@
         const el = document.getElementById(id);
         if (el) el.value = '';
       });
+      toggleBlockDetails('');
       renderCustStatus();
       showToast('انمسحت معلوماتك المحفوظة');
     }
@@ -2018,10 +2045,18 @@
     function closeForm() { document.getElementById('fov').classList.remove('on'); }
     function closeFormOv(e) { if (e.target === document.getElementById('fov')) closeForm(); }
 
+    function toggleBlockDetails(v) {
+      document.getElementById('blockDetails').style.display = v ? 'block' : 'none';
+    }
+
     function sendOrder() {
       const name = document.getElementById('custName').value.trim();
-      const area = document.getElementById('custArea').value.trim();
-      const address = document.getElementById('custAddress').value.trim();
+      const area = document.getElementById('custArea').value;
+      const block = document.getElementById('custBlock').value;
+      const blockNum = document.getElementById('custBlockNum').value.trim();
+      const building = document.getElementById('custBuilding').value.trim();
+      const floor = document.getElementById('custFloor').value.trim();
+      const apt = document.getElementById('custApt').value.trim();
       const phone = document.getElementById('custPhone').value.trim();
 
       const notes = (document.getElementById('custNotes')?.value || '').trim();
@@ -2044,8 +2079,11 @@
       };
 
       if (need(name, 'custName', 'يرجى إدخال اسمك!')) return;
-      if (need(area, 'custArea', 'يرجى إدخال المنطقة!')) return;
-      if (need(address, 'custAddress', 'يرجى إدخال العنوان التفصيلي!')) return;
+      if (need(block, 'custBlock', 'يرجى اختيار البلوك!')) return;
+      if (need(blockNum, 'custBlockNum', 'يرجى إدخال رقم البلوك!')) return;
+      if (need(building, 'custBuilding', 'يرجى إدخال رقم البناية!')) return;
+      if (need(floor, 'custFloor', 'يرجى إدخال الطابق!')) return;
+      if (need(apt, 'custApt', 'يرجى إدخال رقم الشقة!')) return;
       if (need(phone, 'custPhone', 'يرجى إدخال رقم الهاتف!')) return;
 
       // رقم عراقي: ١١ رقماً يبدأ بـ 07 — نتحقق حتى لا يضيع الطلب برقم غلط
@@ -2070,7 +2108,7 @@
       msg += `👤 *الاسم:* ${name}\n`;
       msg += `📞 *الهاتف:* ${digits}\n`;
       msg += `🏙️ *المنطقة:* ${area}\n`;
-      msg += `📍 *العنوان:* ${address}\n`;
+      msg += `📍 *العنوان:* بلوك ${block} - رقم البلوك ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}\n`;
       msg += `🕐 *الوقت:* ${timeStr}\n`;
       msg += `${line}\n`;
       msg += `🧾 *تفاصيل الطلب:*\n`;
@@ -2106,7 +2144,7 @@
         fee: DELIVERY_FEE,
         total: totalP() + DELIVERY_FEE,
         area,
-        address,
+        address: `بلوك ${block} - رقم ${blockNum} - بناية ${building} - طابق ${floor} - شقة ${apt}`,
         notes
       });
       saveOrders(orders);
