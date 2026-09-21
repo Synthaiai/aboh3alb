@@ -223,6 +223,22 @@
         .btn-edit { background: #eff6ff; color: #2563eb; }
         .btn-del { background: #fef2f2; color: #dc2626; }
 
+        /* ── AVAILABILITY TOGGLE ── */
+        .avail-toggle {
+            display: flex; align-items: center; gap: 8px; margin-top: 6px; cursor: pointer; font-size: 13px; font-weight: 700; user-select: none;
+        }
+        .avail-toggle .avail-sw {
+            position: relative; width: 38px; height: 22px; border-radius: 11px; background: #dc2626; transition: background .25s; flex-shrink: 0;
+        }
+        .avail-toggle .avail-sw::after {
+            content: ''; position: absolute; top: 3px; right: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .25s;
+        }
+        .avail-toggle.on .avail-sw { background: #16a34a; }
+        .avail-toggle.on .avail-sw::after { transform: translateX(-16px); }
+        .avail-toggle .avail-lbl { color: #dc2626; }
+        .avail-toggle.on .avail-lbl { color: #16a34a; }
+        .item-card.unavailable { opacity: 0.5; }
+
         /* ── MODAL ── */
         .modal-overlay {
             position: fixed;
@@ -1592,16 +1608,21 @@
 
                 catItems.forEach(it => {
                     const safeImg = safeImgUrl(it.img);
-                    const imgHtml = safeImg 
-                        ? `<img src="${attr(safeImg)}" class="item-img" alt="${attr(it.name)}">` 
+                    const imgHtml = safeImg
+                        ? `<img src="${attr(safeImg)}" class="item-img" alt="${attr(it.name)}">`
                         : `<div class="item-img" style="display:flex; align-items:center; justify-content:center; background:var(--red-light); color:var(--accent);"><i class="ph-bold ph-image-square" style="font-size:24px;"></i></div>`;
+                    const avail = it.available !== false;
                     section += `
-                        <div class="item-card">
+                        <div class="item-card${avail ? '' : ' unavailable'}">
                             ${imgHtml}
                             <div class="item-details">
                                 <div class="item-name">${esc(it.name)}</div>
                                 <div style="font-size:12px; color:var(--sub); margin-bottom:4px;">${esc(it.desc || 'لا يوجد وصف')}</div>
                                 <div class="item-price">${money(it.price)} د.ع</div>
+                                <div class="avail-toggle${avail ? ' on' : ''}" onclick="toggleAvail('${jsArg(it.id)}', ${avail ? 'false' : 'true'})">
+                                    <div class="avail-sw"></div>
+                                    <span class="avail-lbl">${avail ? 'متوفر' : 'غير متوفر'}</span>
+                                </div>
                             </div>
                             <div class="item-actions">
                                 <button class="act-btn btn-edit" title="تعديل" onclick="editItem('${jsArg(it.id)}')"><i class="ph-bold ph-pencil-simple"></i></button>
@@ -1651,6 +1672,10 @@
                     setImgPreview(safeImgUrl(existingImg));
                 }
             });
+        }
+
+        function toggleAvail(id, newVal) {
+            db.child('items').child(id).child('available').set(newVal);
         }
 
         function deleteItem(id) {

@@ -609,7 +609,7 @@
     function buildFeatured() {
       const all = [];
       CATS.forEach(c => (DB[c.id] || []).forEach(it => all.push(it)));
-      FEAT = all.filter(it => it && it.badge === 'new').slice(0, 4).map((it, i) => ({
+      FEAT = all.filter(it => it && it.badge === 'new' && isAvailable(it)).slice(0, 4).map((it, i) => ({
         id: it.id,
         name: it.name,
         tag: (it.desc || '').slice(0, 60),
@@ -815,6 +815,7 @@
     let toastTimer;
 
     /* ── UTILS ── */
+    function isAvailable(item) { return !item || item.available !== false; }
     function all() { return Object.values(DB).flat(); }
     function getItem(id) { return all().find(i => String(i.id) === String(id)); }
     function esc(v) {
@@ -1001,7 +1002,7 @@
 
     // نختار أصنافاً عشوائية من كل المنيو، مع تفضيل بسيط للأصناف المميّزة (badge)
     function pickPopular() {
-      const items = all().filter(i => i && i.name);
+      const items = all().filter(i => i && i.name && isAvailable(i));
       if (!items.length) return [];
       const badged = shuffleArr(items.filter(i => i.badge));
       const others = shuffleArr(items.filter(i => !i.badge));
@@ -1065,7 +1066,7 @@
       if (renderedCats.has(catId) && !force) return;
       const el = document.getElementById(safeDomId(catId) + 'G');
       if (!el) return;
-      const items = DB[catId] || [];
+      const items = (DB[catId] || []).filter(isAvailable);
       if (!items.length) { el.innerHTML = SKELETON; return; }   // ننتظر البيانات
       el.innerHTML = items.map((it, i) => rCard(it, Math.min(i, 8) * .05)).join('');
       renderedCats.add(catId);
@@ -1334,10 +1335,10 @@
 
       toggleFeat(false);
       const needle = v.toLowerCase();
-      const res = all().filter(i =>
+      const res = all().filter(i => isAvailable(i) && (
         String(i.name || '').toLowerCase().includes(needle) ||
         String(i.desc || '').toLowerCase().includes(needle)
-      ).slice(0, 40);   // سقف للنتائج حتى لا يثقل الرسم على الجوال
+      )).slice(0, 40);   // سقف للنتائج حتى لا يثقل الرسم على الجوال
 
       if (popH) popH.textContent = res.length ? `نتائج البحث (${res.length})` : 'نتائج البحث';
       popG.innerHTML = res.length
@@ -1928,7 +1929,7 @@
       const grid = document.getElementById('favG');
       if (!sec || !grid) return;
       // نعرض المفضلات الموجودة فعلاً بالمنيو الحالي
-      const items = Array.from(favs).map(id => getItem(id)).filter(Boolean);
+      const items = Array.from(favs).map(id => getItem(id)).filter(i => i && isAvailable(i));
       if (!items.length) { sec.style.display = 'none'; grid.innerHTML = ''; return; }
       sec.style.display = 'block';
       grid.innerHTML = items.map((it, i) => rCard(it, Math.min(i, 6) * .05)).join('');
@@ -2284,6 +2285,68 @@
         startY = 0;
       });
     }
+
+    /* ── SWIPE BETWEEN SECTIONS (سحب أفقي بين الأقسام) ── */
+    (function initSectionSwipe() {
+      const vp = document.getElementById('mainVp');
+      if (!vp) return;
+      let sx = 0, sy = 0, cx = 0, cy = 0, tracking = false, decided = false, isHoriz = false;
+      const THRESHOLD = 50;
+      const ANGLE_LIMIT = 30;
+
+      function currentIdx() {
+        const secs = Array.from(vp.querySelectorAll('.sec'));
+        const active = vp.querySelector('.sec.sec-active');
+        const idx = secs.indexOf(active);
+        return idx >= 0 ? idx : 0;
+      }
+
+      function goToIdx(i) {
+        const secs = Array.from(vp.querySelectorAll('.sec'));
+        if (i < 0 || i >= secs.length) return;
+        const tabs = Array.from(document.querySelectorAll('.tb'));
+        goTab(secs[i].id, tabs[i] || null);
+      }
+
+      vp.addEventListener('touchstart', e => {
+        if (e.touches.length > 1) return;
+        sx = cx = e.touches[0].clientX;
+        sy = cy = e.touches[0].clientY;
+        tracking = true; decided = false; isHoriz = false;
+      }, { passive: true });
+
+      vp.addEventListener('touchmove', e => {
+        if (!tracking) return;
+        cx = e.touches[0].clientX;
+        cy = e.touches[0].clientY;
+        if (!decided) {
+          const dx = Math.abs(cx - sx), dy = Math.abs(cy - sy);
+          if (dx + dy > 10) {
+            decided = true;
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            isHoriz = angle < ANGLE_LIMIT;
+          }
+        }
+        if (isHoriz) e.preventDefault();
+      }, { passive: false });
+
+      vp.addEventListener('touchend', () => {
+        if (!tracking) return;
+        tracking = false;
+        if (!isHoriz) return;
+        const diff = cx - sx;
+        const isRTL = document.documentElement.dir === 'rtl';
+        // RTL: سحب لليسار = القسم التالي، سحب لليمين = القسم السابق
+        if (Math.abs(diff) > THRESHOLD) {
+          const idx = currentIdx();
+          if (isRTL) {
+            goToIdx(diff < 0 ? idx + 1 : idx - 1);
+          } else {
+            goToIdx(diff > 0 ? idx - 1 : idx + 1);
+          }
+        }
+      }, { passive: true });
+    })();
 
     /* ── INIT ── */
     updateUI();          // نرجّع سلة الزبون المحفوظة قبل أي شيء
