@@ -382,8 +382,12 @@
     }
 
     function initFirebase() {
-      // 1. INSTANT LOAD: Load local data immediately for zero-wait experience
-      if (typeof initialData !== 'undefined') {
+      // 1. INSTANT LOAD: نعرض آخر منيو محفوظ بالجهاز فوراً — يشتغل على أي شبكة
+      //    أو بدون نت. إن ما كو نسخة محفوظة نبدأ بالبيانات المحلية (فارغة).
+      const cachedMenu = readMenuCache();
+      if (cachedMenu) {
+        loadFromData(cachedMenu);
+      } else if (typeof initialData !== 'undefined') {
         loadFromData(initialData);
       }
 
@@ -408,10 +412,18 @@
       let finalData = data;
       const hasItems = data && data.items && (Array.isArray(data.items) ? data.items.length > 0 : Object.keys(data.items).length > 0);
 
-      if (!hasItems && typeof initialData !== 'undefined') {
-        console.warn('Fetched data has no items, falling back to initialData');
-        finalData = initialData;
-        fromCloud = false;   // رجعنا للنسخة المحلية: ما نحذف من سلة الزبون بناءً عليها
+      // بيانات سحابة صحيحة فيها أصناف → نخزّنها بالجهاز لفتحٍ فوري بالمرّات الجاية
+      if (fromCloud && hasItems) saveMenuCache(data);
+
+      if (!hasItems) {
+        // ما وصلت أصناف: نفضّل آخر منيو محفوظ بالجهاز، وإلا البيانات المحلية
+        const cachedMenu = readMenuCache();
+        if (cachedMenu && cachedMenu.items) {
+          finalData = cachedMenu;
+        } else if (typeof initialData !== 'undefined') {
+          finalData = initialData;
+        }
+        fromCloud = false;   // رجعنا لنسخة محلية: ما نحذف من سلة الزبون بناءً عليها
       }
 
       // Load Categories
@@ -464,6 +476,50 @@
       const evSig = (EVENTS || []).map(e => `${e.name}|${e.desc || ''}|${e.img || ''}`).join(';');
       const hrSig = HOURS ? `${HOURS.enabled}|${HOURS.open}|${HOURS.close}` : '';
       return catSig + '||' + itemSig + '||' + evSig + '||' + hrSig;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       نسخة المنيو المحفوظة بالجهاز (localStorage)
+       الهدف: الموقع يفتح على أي شبكة — واي فاي، 4G، رصيد، وحتى بدون نت.
+       أول ما يوصل المنيو من السحابة مرّة وحدة نخزّنه، وبعدها يفتح فوراً
+       من الذاكرة بلا انتظار الاتصال الحيّ بفايربيس (اللي يتعب بالشبكة الضعيفة).
+    ══════════════════════════════════════════════════════════ */
+    const MENU_CACHE_KEY = 'roza:menu_snapshot';
+
+    // نسخة خفيفة بلا صور — ضمان أن يفتح المنيو (أسماء وأسعار) حتى لو الذاكرة ممتلئة
+    function menuWithoutImages(data) {
+      try {
+        const d = JSON.parse(JSON.stringify(data));
+        const items = d.items ? (Array.isArray(d.items) ? d.items : Object.values(d.items)) : [];
+        items.forEach(it => { if (it) delete it.img; });
+        d.items = items;
+        if (d.events) {
+          const ev = Array.isArray(d.events) ? d.events : Object.values(d.events);
+          ev.forEach(e => { if (e) delete e.img; });
+          d.events = ev;
+        }
+        return d;
+      } catch (e) { return null; }
+    }
+
+    function saveMenuCache(data) {
+      if (!data) return;
+      const box = { at: Date.now(), v: data };
+      try { localStorage.setItem(MENU_CACHE_KEY, JSON.stringify(box)); return; }
+      catch (e) { /* الذاكرة ممتلئة بالصور — نخزّن نسخة خفيفة بلا صور */ }
+      const light = menuWithoutImages(data);
+      if (!light) return;
+      try { localStorage.setItem(MENU_CACHE_KEY, JSON.stringify({ at: Date.now(), v: light })); }
+      catch (e) { /* تعذّر التخزين نهائياً — الموقع يشتغل عادي بالاتصال الحيّ */ }
+    }
+
+    function readMenuCache() {
+      try {
+        const raw = localStorage.getItem(MENU_CACHE_KEY);
+        if (!raw) return null;
+        const box = JSON.parse(raw);
+        return box && box.v ? box.v : null;
+      } catch (e) { return null; }
     }
 
     /* ══════════════════════════════

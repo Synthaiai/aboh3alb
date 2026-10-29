@@ -26,9 +26,10 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background:
-                linear-gradient(145deg, rgba(124, 42, 56, 0.15) 0 18%, transparent 18% 100%),
-                linear-gradient(22deg, rgba(165, 66, 74, 0.08) 0 18%, transparent 18% 100%),
+                radial-gradient(120% 90% at 100% 0%, rgba(124, 42, 56, 0.07), transparent 55%),
+                radial-gradient(110% 80% at 0% 0%, rgba(212, 170, 98, 0.10), transparent 50%),
                 var(--bg);
+            background-attachment: fixed;
             font-family: 'Cairo', sans-serif;
             color: var(--ink);
             min-height: 100vh;
@@ -161,9 +162,34 @@
             gap: 10px;
             transition: 0.2s;
         }
-        .btn-primary { background: linear-gradient(135deg, var(--red), #9c3d4b); color: white; }
-        .btn-primary:hover { background: linear-gradient(135deg, #17261f, var(--red)); transform: translateY(-2px); }
+        .btn-primary { background: linear-gradient(135deg, var(--red), #9c3d4b); color: white; box-shadow: 0 10px 24px rgba(124,42,56,0.20); }
+        .btn-primary:hover { background: linear-gradient(135deg, #641f2b, var(--red)); transform: translateY(-2px); box-shadow: 0 14px 30px rgba(124,42,56,0.28); }
         .btn-sync { background: var(--red-light); color: var(--red); }
+
+        /* زر أدوات موحّد: نفس العائلة اللونية لكل أزرار الهيدر */
+        .btn-tool {
+            background: #fff8ee;
+            color: var(--ink);
+            border: 1px solid var(--border);
+            padding: 9px 15px;
+            font-size: 13.5px;
+            box-shadow: 0 1px 2px rgba(124, 42, 56, 0.04);
+        }
+        .btn-tool i { color: var(--red); font-size: 16px; }
+        .btn-tool:hover {
+            background: #fff;
+            border-color: var(--red);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(124, 42, 56, 0.10);
+        }
+        .btn-ghost {
+            background: transparent;
+            color: var(--sub);
+            border: 1px solid transparent;
+            padding: 9px 12px;
+            font-size: 13.5px;
+        }
+        .btn-ghost:hover { color: var(--red); background: var(--red-light); }
 
         /* ── LISTING ── */
         .cat-group { margin-bottom: 40px; }
@@ -220,8 +246,10 @@
             font-size: 18px;
             transition: 0.2s;
         }
-        .btn-edit { background: #eff6ff; color: #2563eb; }
-        .btn-del { background: #fef2f2; color: #dc2626; }
+        .btn-edit { background: #fbf1df; color: #a8701f; }
+        .btn-edit:hover { background: #f6e6c9; }
+        .btn-del { background: #fbeceb; color: #b84336; }
+        .btn-del:hover { background: #f6dcd9; }
 
         /* ── AVAILABILITY TOGGLE ── */
         .avail-toggle {
@@ -522,27 +550,27 @@
         <div class="logo">
             <i class="ph-bold ph-chef-hat"></i> مطعم روزا — الإدارة
         </div>
-        <div style="display:flex; gap:20px; align-items:center;">
-            <button class="btn btn-sync" style="background:#f0fdf4; color:#16a34a; padding:8px 15px;" onclick="openCatModal()">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <button class="btn btn-tool" onclick="openCatModal()">
                 <i class="ph-bold ph-list-plus"></i> إدارة الأقسام
             </button>
-            <button class="btn btn-sync" style="background:#fdf2f8; color:#be185d; padding:8px 15px;" onclick="openEventsModal()">
+            <button class="btn btn-tool" onclick="openEventsModal()">
                 <i class="ph-bold ph-confetti"></i> إدارة الأمسيات
             </button>
-            <button class="btn btn-sync" style="background:#fffbeb; color:#b45309; padding:8px 15px;" onclick="openHoursModal()">
+            <button class="btn btn-tool" onclick="openHoursModal()">
                 <i class="ph-bold ph-clock"></i> أوقات العمل
             </button>
-            <button class="btn btn-sync" style="background:#eef2ff; color:#4338ca; padding:8px 15px;" onclick="openFishModal()">
+            <button class="btn btn-tool" onclick="openFishModal()">
                 <i class="ph-bold ph-fish"></i> سمك التوصيل
             </button>
-            <button class="btn btn-sync" style="background:#f0f9ff; color:#0369a1; padding:8px 15px;" onclick="testFirebase()">
+            <button class="btn btn-tool" onclick="testFirebase()">
                 <i class="ph-bold ph-plugs-connected"></i> فحص الاتصال
             </button>
             <div class="conn-status">
                 <div id="statusDot" class="dot"></div>
                 <span id="statusTxt">جاري الاتصال...</span>
             </div>
-            <button class="btn btn-sync" onclick="logout()" style="padding:8px; background:none; border:none; color:var(--red);">
+            <button class="btn btn-ghost" onclick="logout()">
                 خروج <i class="ph-bold ph-sign-out"></i>
             </button>
         </div>
