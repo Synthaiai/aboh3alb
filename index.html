@@ -1270,27 +1270,14 @@
       rememberSection(id);
     }
 
-    /* ── ذاكرة آخر قسم ──
-       يرجع الزبون لنفس القسم إذا رجع خلال نصف ساعة (كان يقرأ المنيو).
-       بعد ذلك يبدأ من الرئيسية حتى لا يفتح الموقع بعد يومين بقسم غريب. */
-    const SECTION_TTL = 30 * 60 * 1000;
-    let sectionSaveTimer = null;
-    function rememberSection(id) {
-      if (!id) return;
-      clearTimeout(sectionSaveTimer);
-      sectionSaveTimer = setTimeout(() => Store.set('lastSection', id, SECTION_TTL), 400);
-    }
+    /* ── الموقع يبدأ دائماً من الرئيسية ──
+       أُلغيت ذاكرة "آخر قسم": كان الموقع يفتح أحياناً على قسم داخلي (مثل الأراكيل)
+       بدل الرئيسية لأن الزبون كان هناك بآخر زيارة. الآن يبدأ من الرئيسية كل مرة. */
+    function rememberSection(id) { /* مُعطّلة عمداً — لا نحفظ آخر قسم */ }
 
-    let sectionRestored = false;
     function restoreLastSection() {
-      if (sectionRestored) return;
-      sectionRestored = true;
-      const id = Store.get('lastSection', null);
-      if (!id || id === 'home') return;
-      const sec = document.getElementById(id);
-      if (!sec) return;
-      const tab = document.querySelector(`.tb[data-target="${cssEsc(id)}"]`);
-      if (tab) goTab(id, tab);
+      // ننظّف أي قسم محفوظ من النسخة القديمة حتى لا يبقى عالقاً بجهاز الزبون
+      try { Store.del('lastSection'); } catch (e) {}
     }
 
     function playBrowseMotion(vp) {

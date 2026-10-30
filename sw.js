@@ -1,4 +1,4 @@
-const CACHE_NAME = 'roza-v2';
+const CACHE_NAME = 'roza-v3';
 const ASSETS = [
   './',
   './index.html',
